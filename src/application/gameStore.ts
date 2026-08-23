@@ -109,9 +109,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    const streak = passed && !wasCleared
-      ? advanceStreak(currentStreak, bestStreak, true)
-      : resetStreak(bestStreak);
+    const streak = !passed
+      ? resetStreak(bestStreak)
+      : advanceStreak(currentStreak, bestStreak, !wasCleared);
     const replayAdjustment = passed && wasCleared ? -quest.reward.xp : 0;
     const nextPlayer = {
       ...result.player,
