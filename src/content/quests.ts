@@ -61,7 +61,7 @@ export const quests: Quest[] = [
     title: 'Promise 链式调用',
     description: '观察同步日志与微任务的执行顺序，击败第二只小怪。',
     difficulty: 2,
-    prerequisiteQuestIds: ['promise-state'],
+    prerequisiteQuestIds: ['promise-basics'],
     reward: { xp: 80 },
     hints: [
       '先执行当前同步代码，再处理 Promise.then 注册的微任务。',
@@ -115,7 +115,7 @@ export const quests: Quest[] = [
     title: 'async / await 最终试炼',
     description: '综合判断 async / await 与 Promise 的执行关系。',
     difficulty: 3,
-    prerequisiteQuestIds: ['event-loop'],
+    prerequisiteQuestIds: ['promise-chain'],
     reward: { xp: 100 },
     hints: [
       'await 会暂停当前 async 函数的后续执行，但不会阻塞整个 JavaScript 主线程。',
