@@ -33,6 +33,7 @@ Quest 是训练和产生能力证据的载体，而不是知识本身。长期�
 覆盖：
 
 - Promise
+- Promise State
 - Microtask
 - Event Loop
 - async / await
@@ -48,32 +49,57 @@ Quest 是训练和产生能力证据的载体，而不是知识本身。长期�
 
 当前处于：
 
-**Sprint 1 — Learning Core**
+**Sprint 2 — Experience Core**
 
-目标：让系统开始知道“玩家掌握了什么”，而不仅仅知道“玩家通关了什么”。
+目标：在 Sprint 1 Learning Core 的基础上，让现有 Quest Runtime 形成完整、可持续的游戏体验。
 
 详细状态请优先阅读：
 
 1. `docs/PROJECT_SPEC.md` — 产品与架构总纲
 2. `docs/PROJECT_PROGRESS.md` — 当前项目状态
-3. `docs/SPRINT1_LEARNING_CORE.md` — 当前 Sprint 执行计划
+3. `docs/SPRINT2_EXPERIENCE_CORE.md` — 当前 Sprint 执行计划
 
-如果第三份 Sprint 文档不存在，应先修复文档同步问题，不要根据猜测继续开发。
+如果当前 Sprint 文档不存在，应先修复文档同步问题，不要根据猜测继续开发。
 
 ---
 
-## 当前 Sprint 进度
+## Sprint 1 状态
+
+**Learning Core — 已完成**
+
+```text
+Knowledge
+    ↓
+Quest
+    ↓
+Evaluation
+    ↓
+Evidence
+    ↓
+Mastery
+    ↓
+Persistence
+```
+
+用户最终验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+---
+
+## Sprint 2 当前进度
 
 | Step | 内容 | 状态 |
 |---|---|---|
-| 1 | 仓库盘点 + Learning Core 第一版数据模型设计 | ✅ |
-| 2 | Knowledge Model | 🟡 当前 |
-| 3 | Quest Content Schema | ⬜ |
-| 4 | Skill / Evidence / Mastery | ⬜ |
-| 5 | Calibration | ⬜ |
-| 6 | Async World 最小内容集 | ⬜ |
-| 7 | Integration | ⬜ |
-| 8 | Tests | ⬜ |
+| 1 | Experience Flow / 状态边界 | 🟡 当前 |
+| 2 | Quest Experience Flow | ⬜ |
+| 3 | Failure Recovery | ⬜ |
+| 4 | XP / Level / Progress | ⬜ |
+| 5 | Boss Experience | ⬜ |
+| 6 | Integration + Tests | ⬜ |
 
 ---
 
@@ -99,7 +125,7 @@ Unlock
 Persistence
 ```
 
-Sprint 1 不会推翻这个闭环，而是在它上面逐步增加 Learning Core：
+Sprint 1 已在此闭环之上建立 Learning Core；Sprint 2 将继续增强 Experience Core，而不是推翻现有闭环。
 
 ```text
 Knowledge
@@ -107,12 +133,14 @@ Knowledge
 Quest
     ↓
 Evaluation
-    ↓
-Evidence
-    ↓
-Mastery
-    ↓
-Adaptive Challenge
+    ├──────────────→ Experience
+    │                    ├── XP
+    │                    ├── Progress
+    │                    └── Recovery
+    │
+    └──────────────→ Learning
+                         ├── Evidence
+                         └── Mastery
 ```
 
 ---
@@ -167,9 +195,9 @@ Commit
 
 回答：**我们现在做到哪。**
 
-它是项目的 Project State，包括当前 Sprint、当前 Step、已完成内容、进行中内容、阻塞项、下一步、最近 Commit 和文档同步状态。
+它是项目的 Project State，包括当前 Sprint、当前 Step、已完成内容、进行中内容、阻塞项、下一步和文档同步状态。
 
-### `docs/SPRINT1_LEARNING_CORE.md`
+### `docs/SPRINT2_EXPERIENCE_CORE.md`
 
 回答：**当前 Sprint 具体怎么做。**
 
@@ -229,6 +257,7 @@ npm run dev
 
 ```bash
 npm test
+npm run build
 ```
 
 ---
