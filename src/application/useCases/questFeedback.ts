@@ -11,12 +11,10 @@ export function createQuestFeedbackEvent(
     return null;
   }
 
-  return createQuestCompletedEvent({
-    questId: quest.id,
-    questName: quest.title,
-    rewards: {
-      xp,
-      skill: quest.skillDimensions,
-    },
-  });
+  return createQuestCompletedEvent(
+    quest.id,
+    quest.title,
+    xp,
+    quest.skillDimensions,
+  );
 }
