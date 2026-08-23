@@ -1,5 +1,6 @@
 import type { Player } from '../../domain/player/types';
 import type { ProgressMap } from '../../domain/progress/types';
+import type { BossProgress } from '../../domain/boss/types';
 
 export interface GameSave {
   version: 1;
@@ -8,6 +9,7 @@ export interface GameSave {
   gameplay: {
     currentStreak: number;
     bestStreak: number;
+    bossProgress?: BossProgress;
   };
 }
 
