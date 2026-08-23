@@ -18,10 +18,12 @@ export function FeedbackContainer() {
       )}
 
       {feedback.notification && (
-        <UnlockNotification message={feedback.notification} />
+        <UnlockNotification {...feedback.notification} />
       )}
 
-      <BossPhaseChange />
+      {feedback.bossPhase && (
+        <BossPhaseChange {...feedback.bossPhase} />
+      )}
     </>
   );
 }
