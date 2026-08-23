@@ -10,10 +10,10 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 1 — Learning Core
-- **当前阶段:** Step 4 完成：Skill / Evidence / Mastery
+- **当前阶段:** Step 5 完成：Calibration
 - **AI:** 暂不接入
-- **下一步:** Step 5 — Calibration
-- **最后更新:** 2026-08-23
+- **下一步:** Step 6 — Async World 最小内容集
+- **最后更新:** 2026-08-24
 
 ---
 
@@ -211,6 +211,96 @@ Step 4 已完成设计、实现、测试和用户验证。
 
 ---
 
+# Step 5 — Calibration ✅
+
+## 实现
+
+```text
+src/domain/calibration/types.ts
+src/domain/calibration/calibration.ts
+src/domain/calibration/calibration.test.ts
+```
+
+## 最小模型
+
+```text
+CalibrationDefinition
+        ↓
+CalibrationAttempt
+        ↓
+CalibrationResult
+        ↓
+recommendedQuestId
+```
+
+### CalibrationDefinition
+
+```ts
+interface CalibrationDefinition {
+  id: string;
+  worldId: string;
+  questIds: string[];
+}
+```
+
+Calibration 复用现有 Quest Content，不创建新的 CalibrationQuest / AssessmentQuest 类型体系。
+
+### CalibrationAttempt / Answer
+
+```ts
+interface CalibrationAnswer {
+  questId: string;
+  score: number;
+  passed: boolean;
+}
+
+interface CalibrationAttempt {
+  id: string;
+  calibrationId: string;
+  answers: CalibrationAnswer[];
+  completedAt: string;
+}
+```
+
+### CalibrationResult
+
+```ts
+interface CalibrationResult {
+  calibrationId: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  score: number;
+  recommendedQuestId: string | null;
+  completedAt: string;
+}
+```
+
+### 规则
+
+- Calibration Score 使用所有回答分数的简单平均。
+- Level 使用 Calibration Quest 的**最高连续通过层级**确定。
+- Calibration 不产生 SkillEvidence。
+- Calibration 不修改 SkillMastery。
+- Calibration 不修改 QuestProgress。
+- Calibration 不修改现有 Unlock 规则。
+- `recommendedQuestId` 只表达推荐起点，真正接入游戏 Runtime 留到 Step 7。
+
+### 边界
+
+Step 5 没有引入 AI、IRT、Bayesian、自适应选题、复杂推荐、Calibration History、UI，也没有重构 Quest / Progress / GameStore。
+
+### 验证
+
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+Step 5 已完成设计、实现、测试和用户验证。
+
+---
+
 # 当前 Sprint 计划
 
 | Step | 内容 | 状态 |
@@ -219,8 +309,8 @@ Step 4 已完成设计、实现、测试和用户验证。
 | 2 | Knowledge Model | ✅ |
 | 3 | Quest Content Schema | ✅ |
 | 4 | Skill / Evidence / Mastery | ✅ |
-| 5 | Calibration | 🟡 下一步 |
-| 6 | Async World 最小内容集 | ⬜ |
+| 5 | Calibration | ✅ |
+| 6 | Async World 最小内容集 | 🟡 下一步 |
 | 7 | Integration | ⬜ |
 | 8 | Tests | ⬜ |
 
