@@ -1,7 +1,7 @@
 export interface BossPhaseChangeProps {
   bossName: string;
-  fromPhase: string;
-  toPhase: string;
+  fromPhase: string | number;
+  toPhase: string | number;
 }
 
 export function BossPhaseChange({ bossName, fromPhase, toPhase }: BossPhaseChangeProps) {
