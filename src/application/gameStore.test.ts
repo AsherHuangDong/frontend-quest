@@ -143,3 +143,76 @@ describe('gameStore learning integration', () => {
     expect(state.skillMastery).toEqual({});
   });
 });
+
+describe('gameStore quest experience flow', () => {
+  beforeEach(() => {
+    storage.clear();
+    installStorage();
+  });
+
+  it('does not start a locked quest', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-chain');
+
+    expect(useGameStore.getState().runtime).toBeNull();
+  });
+
+  it('starts an available quest with an empty runtime', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+
+    expect(useGameStore.getState().runtime).toEqual({
+      questId: 'promise-basics',
+      selectedAnswer: null,
+      result: null,
+    });
+  });
+
+  it('does not submit before an answer is selected', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().submitAnswer();
+
+    expect(useGameStore.getState().runtime?.result).toBeNull();
+  });
+
+  it('does not change the selected answer after a result exists', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().selectAnswer('B');
+    useGameStore.getState().submitAnswer();
+
+    const runtimeAfterSubmit = useGameStore.getState().runtime;
+    useGameStore.getState().selectAnswer('A');
+
+    expect(useGameStore.getState().runtime).toEqual(runtimeAfterSubmit);
+  });
+
+  it('retry clears the answer and result while keeping the quest active', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().selectAnswer('B');
+    useGameStore.getState().submitAnswer();
+    useGameStore.getState().retryQuest();
+
+    expect(useGameStore.getState().runtime).toEqual({
+      questId: 'promise-basics',
+      selectedAnswer: null,
+      result: null,
+    });
+  });
+
+  it('exit clears the active quest runtime', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().exitQuest();
+
+    expect(useGameStore.getState().runtime).toBeNull();
+  });
+});
