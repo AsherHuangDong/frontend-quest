@@ -2,7 +2,7 @@
 
 > Sprint: Sprint 1  
 > Status: In Progress  
-> Current Step: Step 6 — Async World 最小内容集  
+> Current Step: Step 7 — Integration  
 > MVP World: JavaScript Async World  
 > AI Dependency: None
 
@@ -66,8 +66,8 @@ Mastery
 | 3 | Quest Content Schema | ✅ |
 | 4 | Skill / Evidence / Mastery | ✅ |
 | 5 | Calibration | ✅ |
-| 6 | Async World 最小内容集 | 🟡 当前 |
-| 7 | Integration | ⬜ |
+| 6 | Async World 最小内容集 | ✅ |
+| 7 | Integration | 🟡 当前 |
 | 8 | Tests | ⬜ |
 
 ---
@@ -170,30 +170,7 @@ interface Quest {
 }
 ```
 
-三个现有 Quest 已全部声明 Knowledge、Skill Dimension 和 Quest Type。
-
-Step 3 只增加 Content Schema，不改变 Evaluation、submitQuest、XP、Unlock、Boss、Chapter、GameStore 或 Player Progress。
-
-用户本地验证：
-
-```text
-npm test       ✅
-npm run build  ✅
-```
-
-### Step 3 验收
-
-- [x] Quest 可以引用一个或多个 Knowledge Node
-- [x] Quest 可以声明 Skill Dimension
-- [x] Quest 有独立 QuestType
-- [x] Challenge / Evaluation 行为保持不变
-- [x] 现有 Quest progression 保持不变
-- [x] 内容与玩家进度继续分离
-- [x] Schema / 引用完整性测试
-- [x] 用户本地验证通过
-- [x] 项目文档同步
-
-Step 3 已完成，进入 Step 4。
+三个现有 Quest 已全部声明 Learning metadata，并保持原有 prerequisite / progression 不变。
 
 ---
 
@@ -336,27 +313,92 @@ Step 5 已完成设计、实现、测试和用户验证。
 
 ## 状态
 
-**下一步。**
+**已完成。**
 
-将 Async World 的最小知识、Quest、Boss 内容真正组织起来，覆盖 Explore、Understand、Reason、Debug、Boss。
+Step 6 将已经建立的 Learning Core Schema 填充为一个完整的最小 Async World Content Pack，而不是继续扩展 Domain 或 Runtime。
 
-进入实现前需要检查实际内容代码，并确定最小内容集：
+### Knowledge
 
-- KnowledgeNode 是否完整
-- Knowledge prerequisite 是否形成合理 DAG
-- Quest 是否覆盖 Knowledge
-- Quest 是否覆盖 SkillDimension
-- QuestType 是否合理
-- 是否存在 Boss / Boss Phase 内容缺口
-- Calibration 使用的 Quest 是否与正常内容一致
+保持现有 6 个节点：
 
-Step 6 不引入新的 Runtime 模型，不修改现有 Evaluation、XP、Unlock、Boss 规则。
+- Promise
+- Promise State
+- Microtask
+- Event Loop
+- async / await
+- Race Condition
+
+### Quest
+
+当前 6 个 Quest：
+
+```text
+promise-basics
+promise-state
+promise-chain
+event-loop
+async-await-final
+race-condition
+```
+
+其中：
+
+- `promise-state`：新增 Promise 三态学习 Quest
+- `event-loop`：新增 Event Loop 执行顺序 Quest
+- `race-condition`：新增异步竞争条件 Debug Quest
+
+所有 KnowledgeNode 均被至少一个 Quest 覆盖；所有 Quest 均声明 Knowledge、SkillDimension、QuestType。
+
+### Progression 兼容
+
+保持原有主线：
+
+```text
+promise-basics
+    ↓
+promise-chain
+    ↓
+async-await-final
+```
+
+新增内容不插入原有主线，因此旧存档中已经完成 `promise-basics + promise-chain` 的玩家不会因为新增 Quest 被强制重新学习。
+
+`race-condition` 在 `async-await-final` 后继续主线；`event-loop` 作为新增内容不改变原有 `async-await-final` prerequisite。
+
+### Chapter
+
+Chapter 内容与 Quest Content 保持同步，Async World 的最小 Quest 集均纳入当前 Chapter Content。
+
+### Boss
+
+当前仓库已有 Boss Runtime / State Machine，但没有独立 Boss Content Schema。Step 6 因此不新增 Boss Runtime 或新模型；综合 Boss Content 留待后续在现有规则内处理。
+
+### 回归
+
+Step 6 实现过程中曾出现 `progressMigration` 回归：把 `event-loop` 插入原有 `async-await-final` prerequisite 会导致旧存档无法自动解锁。已修正并由用户重新运行测试验证通过。
+
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+### 边界
+
+Step 6 没有新增 Knowledge Domain、Graph Engine、AI、动态 Quest、推荐算法，也没有修改 Evaluation、XP、Unlock、Boss Runtime、Evidence 或 Mastery 规则。
+
+Step 6 已完成设计、实现、测试、用户验证。
 
 ---
 
 # Step 7 — Integration
 
-将 Learning Core 接入现有游戏 Runtime，而不是重写 Runtime。
+## 状态
+
+**当前步骤。**
+
+目标：把已经独立完成的 Learning Core 接入现有游戏 Runtime，而不是重写 Runtime。
 
 目标闭环：
 
@@ -367,12 +409,21 @@ Quest
  ↓
 Evaluation
  ↓
-Evidence
+SkillEvidence
  ↓
-Mastery
- ↓
-XP / Progress / Unlock
+SkillMastery
 ```
+
+Integration 重点检查：
+
+- `gameStore` 在 Quest 提交成功后如何调用 Evidence use case
+- Skill Evidence / Mastery 的持久化边界
+- 是否需要扩展 Player Progress
+- 不改变 XP / Unlock / Boss / Chapter / Quest Evaluation
+- 不把 Calibration 结果混入正常 Skill Evidence
+- 保持 Domain 不依赖 React
+
+Step 7 不提前实现 UI 学习分析页面、不接 AI、不修改既有 Truth Layer 规则。
 
 ---
 
