@@ -8,6 +8,7 @@ import { completePhase, createBossProgress, startBoss } from '../domain/boss/sta
 import { asyncBoss } from '../content/bosses/asyncBoss';
 import { quests } from '../content/quests';
 import { submitQuest } from './useCases/submitQuest';
+import { mergeQuestProgress } from './progressMigration';
 import { LocalStorageGameRepository } from '../infrastructure/persistence/localStorageGameRepository';
 import type { GameSave } from '../infrastructure/persistence/gameRepository';
 
@@ -39,50 +40,7 @@ interface GameState {
 const repository = new LocalStorageGameRepository();
 
 function createInitialProgress(): ProgressMap {
-  return Object.fromEntries(
-    quests.map((quest) => [
-      quest.id,
-      {
-        questId: quest.id,
-        status: quest.prerequisiteQuestIds.length === 0 ? 'available' : 'locked',
-        attempts: 0,
-        bestScore: 0,
-        lastScore: null,
-        clearedAt: null,
-      },
-    ]),
-  );
-}
-
-function mergeProgress(saved: ProgressMap): ProgressMap {
-  const defaults = createInitialProgress();
-  const merged: ProgressMap = Object.fromEntries(
-    quests.map((quest) => [quest.id, saved[quest.id] ?? defaults[quest.id]]),
-  );
-
-  // Reconcile unlocks after a game update. A saved game may predate newly
-  // added quests, so their initial `locked` state must be derived from the
-  // already-cleared prerequisites rather than forcing the player to replay.
-  let changed = true;
-  while (changed) {
-    changed = false;
-
-    for (const quest of quests) {
-      const current = merged[quest.id];
-      if (!current || current.status !== 'locked') continue;
-
-      const prerequisitesCleared = quest.prerequisiteQuestIds.every(
-        (id) => merged[id]?.status === 'cleared',
-      );
-
-      if (prerequisitesCleared) {
-        merged[quest.id] = { ...current, status: 'available' };
-        changed = true;
-      }
-    }
-  }
-
-  return merged;
+  return mergeQuestProgress({}, quests);
 }
 
 function loadSave(): GameSave {
@@ -90,7 +48,7 @@ function loadSave(): GameSave {
   if (save) {
     return {
       ...save,
-      progress: mergeProgress(save.progress),
+      progress: mergeQuestProgress(save.progress, quests),
       gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
     };
   }
