@@ -43,7 +43,7 @@ describe('quest content schema', () => {
     );
   });
 
-  it('keeps quest progression linear and valid', () => {
+  it('preserves the existing progression path while allowing optional learning quests', () => {
     expect(quests.map((quest) => quest.id)).toEqual([
       'promise-basics',
       'promise-state',
@@ -53,8 +53,18 @@ describe('quest content schema', () => {
       'race-condition',
     ]);
 
-    for (let index = 1; index < quests.length; index += 1) {
-      expect(quests[index].prerequisiteQuestIds).toEqual([quests[index - 1].id]);
-    }
+    expect(quests.find((quest) => quest.id === 'promise-chain')?.prerequisiteQuestIds).toEqual([
+      'promise-basics',
+    ]);
+    expect(quests.find((quest) => quest.id === 'async-await-final')?.prerequisiteQuestIds).toEqual([
+      'promise-chain',
+    ]);
+
+    expect(quests.find((quest) => quest.id === 'event-loop')?.prerequisiteQuestIds).toEqual([
+      'promise-chain',
+    ]);
+    expect(quests.find((quest) => quest.id === 'race-condition')?.prerequisiteQuestIds).toEqual([
+      'async-await-final',
+    ]);
   });
 });
