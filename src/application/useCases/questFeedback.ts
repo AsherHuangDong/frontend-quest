@@ -15,6 +15,6 @@ export function createQuestFeedbackEvent(
     quest.id,
     quest.title,
     xp,
-    quest.skillDimensions?.[0]?.name,
+    quest.skillDimensions?.[0],
   );
 }
