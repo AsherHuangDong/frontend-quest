@@ -16,7 +16,7 @@ const questTypes = new Set(['explore', 'understand', 'reason', 'debug']);
 
 describe('quest content schema', () => {
   it('defines learning metadata for every quest', () => {
-    expect(quests).toHaveLength(3);
+    expect(quests).toHaveLength(6);
 
     for (const quest of quests) {
       expect(quest.knowledgeNodeIds.length).toBeGreaterThan(0);
@@ -33,14 +33,28 @@ describe('quest content schema', () => {
     }
   });
 
-  it('keeps the existing quest progression order', () => {
+  it('covers every Async World knowledge node', () => {
+    const coveredKnowledgeNodeIds = new Set(
+      quests.flatMap((quest) => quest.knowledgeNodeIds),
+    );
+
+    expect([...coveredKnowledgeNodeIds].sort()).toEqual(
+      [...knowledgeNodeIds].sort(),
+    );
+  });
+
+  it('keeps quest progression linear and valid', () => {
     expect(quests.map((quest) => quest.id)).toEqual([
       'promise-basics',
+      'promise-state',
       'promise-chain',
+      'event-loop',
       'async-await-final',
+      'race-condition',
     ]);
 
-    expect(quests[1].prerequisiteQuestIds).toEqual(['promise-basics']);
-    expect(quests[2].prerequisiteQuestIds).toEqual(['promise-chain']);
+    for (let index = 1; index < quests.length; index += 1) {
+      expect(quests[index].prerequisiteQuestIds).toEqual([quests[index - 1].id]);
+    }
   });
 });
