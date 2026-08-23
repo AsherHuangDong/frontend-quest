@@ -1,6 +1,7 @@
-import { useGameStore, getQuest } from './application/gameStore';
+import { useGameStore, getQuest } from './application/gameStoreV2';
 import { calculateLevel } from './domain/player/level';
 import type { Challenge } from './domain/quest/types';
+import { getHintPenalty } from './domain/quest/scoring';
 import './styles.css';
 
 function ChallengeContent({
@@ -50,12 +51,15 @@ export default function App() {
   const runtime = useGameStore((state) => state.runtime);
   const startQuest = useGameStore((state) => state.startQuest);
   const selectAnswer = useGameStore((state) => state.selectAnswer);
+  const useHint = useGameStore((state) => state.useHint);
   const submitAnswer = useGameStore((state) => state.submitAnswer);
   const retryQuest = useGameStore((state) => state.retryQuest);
   const exitQuest = useGameStore((state) => state.exitQuest);
 
   const activeQuest = runtime ? getQuest(runtime.questId) : undefined;
   const level = calculateLevel(player.xp);
+  const hints = activeQuest?.hints ?? [];
+  const nextHintIndex = runtime?.hintsUsed ?? 0;
 
   return (
     <main className="app-shell">
@@ -128,6 +132,30 @@ export default function App() {
                 selectedAnswer={runtime.selectedAnswer}
                 onSelect={selectAnswer}
               />
+
+              {hints.length > 0 && (
+                <div className="hint-panel">
+                  <div className="hint-header">
+                    <span>💡 提示</span>
+                    <small>{runtime.hintsUsed}/{hints.length} · 每次提示 -{getHintPenalty(nextHintIndex)} 分</small>
+                  </div>
+                  {runtime.hintsUsed > 0 && (
+                    <div className="hint-content">
+                      {hints.slice(0, runtime.hintsUsed).map((hint, index) => (
+                        <p key={hint}><strong>提示 {index + 1}：</strong>{hint}</p>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    className="hint-button"
+                    disabled={runtime.hintsUsed >= hints.length}
+                    onClick={useHint}
+                  >
+                    {runtime.hintsUsed >= hints.length ? '没有更多提示' : `使用提示 ${runtime.hintsUsed + 1}`}
+                  </button>
+                </div>
+              )}
+
               {activeQuest.challenge.type !== 'code' && (
                 <button className="submit-button" disabled={!runtime.selectedAnswer} onClick={submitAnswer}>
                   提交答案
@@ -143,7 +171,11 @@ export default function App() {
               <p>{runtime.result.feedback}</p>
               {runtime.result.passed && (
                 <p className="reward-note">
-                  {currentStreak > 1 ? `🔥 ${currentStreak} 连胜，获得额外 XP 奖励！` : '获得首通 XP 奖励！'}
+                  {runtime.hintsUsed > 0
+                    ? `使用了 ${runtime.hintsUsed} 次提示，熟练度最高为 ${runtime.result.score}%。`
+                    : currentStreak > 1
+                      ? `🔥 ${currentStreak} 连胜，获得额外 XP 奖励！`
+                      : '获得首通 XP 奖励！'}
                 </p>
               )}
               <button className="submit-button" onClick={runtime.result.passed ? exitQuest : retryQuest}>
