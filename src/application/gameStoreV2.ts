@@ -3,6 +3,7 @@ import type { EvaluationResult, Quest } from '../domain/quest/types';
 import type { Player } from '../domain/player/types';
 import type { ProgressMap } from '../domain/progress/types';
 import type { BossProgress } from '../domain/boss/types';
+import type { SkillEvidence, SkillMasteryMap } from '../domain/skill/types';
 import { advanceStreak, resetStreak } from '../domain/player/streak';
 import { completePhase, createBossProgress, startBoss } from '../domain/boss/stateMachine';
 import { asyncBoss } from '../content/bosses/asyncBoss';
@@ -48,6 +49,7 @@ function loadSave(): GameSave {
   if (save) {
     return {
       ...save,
+      learning: save.learning ?? { skillEvidence: [], skillMastery: {} },
       progress: mergeQuestProgress(save.progress, quests),
       gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
     };
@@ -57,6 +59,7 @@ function loadSave(): GameSave {
     version: 1,
     player: { id: 'player-1', name: 'Frontend Knight', xp: 0 },
     progress: createInitialProgress(),
+    learning: { skillEvidence: [], skillMastery: {} },
     gameplay: { currentStreak: 0, bestStreak: 0 },
   };
 }
@@ -82,10 +85,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     const bossProgress = get().bossProgress;
     const started = startBoss(bossProgress);
     if (started === bossProgress) return;
+    const save = repository.load();
     repository.save({
       version: 1,
       player: get().player,
       progress: get().progress,
+      learning: save?.learning ?? { skillEvidence: [], skillMastery: {} },
       gameplay: { currentStreak: get().currentStreak, bestStreak: get().bestStreak, bossProgress: started },
     });
     set({ bossProgress: started });
@@ -158,10 +163,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
+    const save = repository.load();
     repository.save({
       version: 1,
       player: nextPlayer,
       progress: nextProgress,
+      learning: save?.learning ?? { skillEvidence: [], skillMastery: {} },
       gameplay: { currentStreak: streak.current, bestStreak: streak.best, bossProgress: nextBossProgress },
     });
 
