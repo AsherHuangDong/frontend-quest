@@ -14,9 +14,11 @@ button:not(:disabled) { cursor: pointer; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 48px; }
 .eyebrow, .chapter-label, .challenge-header span, .quest-info > span { font-size: 12px; letter-spacing: .14em; color: #a1a1aa; }
 h1 { margin: 8px 0 0; font-size: clamp(30px, 5vw, 48px); }
-.player-card { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding: 14px 18px; border: 1px solid #27272a; border-radius: 14px; background: #111113; }
-.player-card span { color: #a1a1aa; font-size: 13px; }
+.player-stats { display: flex; gap: 10px; align-items: stretch; }
+.player-card, .streak-card { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; padding: 14px 18px; border: 1px solid #27272a; border-radius: 14px; background: #111113; }
+.player-card span, .streak-card span, .streak-card small { color: #a1a1aa; font-size: 13px; }
 .player-card strong { font-size: 18px; }
+.streak-card strong { font-size: 24px; }
 .chapter-card, .challenge-card { border: 1px solid #27272a; border-radius: 24px; background: rgba(17,17,19,.86); padding: clamp(24px, 5vw, 48px); box-shadow: 0 24px 80px rgba(0,0,0,.25); }
 h2 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
 .chapter-card > p { color: #a1a1aa; margin-bottom: 36px; }
@@ -28,6 +30,10 @@ h2 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
 .quest-info p { margin: 0; color: #a1a1aa; }
 .quest-card button, .submit-button { border: 0; border-radius: 10px; padding: 12px 18px; color: #09090b; background: #f4f4f5; font-weight: 700; }
 .quest-card button:disabled, .submit-button:disabled { cursor: not-allowed; opacity: .45; }
+.mastery-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; color: #a1a1aa; font-size: 12px; }
+.mastery-bar { width: min(220px, 35vw); height: 6px; overflow: hidden; border-radius: 999px; background: #27272a; }
+.mastery-bar div { height: 100%; border-radius: inherit; background: #f4f4f5; transition: width .25s ease; }
+.mastery-row strong { color: #f4f4f5; }
 .challenge-header { display: flex; justify-content: space-between; margin-bottom: 28px; }
 .challenge-header span:last-child { color: #f4f4f5; }
 .options { display: grid; gap: 12px; margin: 32px 0; }
@@ -39,8 +45,10 @@ h2 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
 .result > span { font-size: 12px; letter-spacing: .16em; color: #a1a1aa; }
 .result strong { display: block; font-size: 48px; margin: 20px 0 4px; }
 .result p { max-width: 620px; margin: 0 auto 30px; color: #a1a1aa; line-height: 1.7; }
+.reward-note { font-weight: 700; color: #f4f4f5 !important; }
 @media (max-width: 680px) {
   .topbar { align-items: flex-start; }
+  .player-stats { flex-direction: column; }
   .quest-card { grid-template-columns: 40px 1fr; }
   .quest-card button { grid-column: 2; justify-self: start; }
 }
