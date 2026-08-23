@@ -125,13 +125,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       xp: result.player.xp + streak.bonusXp + replayAdjustment,
     };
 
-    const learning = recordQuestSkillEvidence(quest, result.evaluation, skillEvidence);
+    const learningResult = recordQuestSkillEvidence(quest, result.evaluation, skillEvidence);
+    const nextLearning = {
+      skillEvidence: [...skillEvidence, ...learningResult.evidence],
+      skillMastery: learningResult.mastery,
+    };
 
     repository.save({
       version: 1,
       player: nextPlayer,
       progress: nextProgress,
-      learning,
+      learning: nextLearning,
       gameplay: {
         currentStreak: streak.current,
         bestStreak: streak.best,
@@ -141,8 +145,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       player: nextPlayer,
       progress: nextProgress,
-      skillEvidence: learning.evidence,
-      skillMastery: learning.mastery,
+      skillEvidence: nextLearning.skillEvidence,
+      skillMastery: nextLearning.skillMastery,
       currentStreak: streak.current,
       bestStreak: streak.best,
       runtime: { ...runtime, result: result.evaluation },
