@@ -1,23 +1,38 @@
 export type FeedbackToast = {
   id: string;
   message: string;
+  amount?: number;
 };
 
 export type FeedbackModal = {
   title: string;
+  questName?: string;
   description?: string;
+};
+
+export type FeedbackNotification = {
+  title: string;
+  content: string;
+};
+
+export type BossPhaseFeedback = {
+  bossName: string;
+  fromPhase: number;
+  toPhase: number;
 };
 
 export type FeedbackState = {
   toastQueue: FeedbackToast[];
   modal: FeedbackModal | null;
-  notification: string | null;
+  notification: FeedbackNotification | null;
+  bossPhase: BossPhaseFeedback | null;
 };
 
 const initialState: FeedbackState = {
   toastQueue: [],
   modal: null,
   notification: null,
+  bossPhase: null,
 };
 
 let state = initialState;
@@ -70,10 +85,18 @@ export const feedbackStore = {
     notify();
   },
 
-  showNotification(message: string) {
+  showNotification(notification: FeedbackNotification) {
     state = {
       ...state,
-      notification: message,
+      notification,
+    };
+    notify();
+  },
+
+  showBossPhase(phase: BossPhaseFeedback) {
+    state = {
+      ...state,
+      bossPhase: phase,
     };
     notify();
   },
