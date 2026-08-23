@@ -10,9 +10,9 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 1 — Learning Core
-- **当前阶段:** Step 6 完成：Async World 最小内容集
+- **当前阶段:** Step 7 完成：Learning Core Integration
 - **AI:** 暂不接入
-- **下一步:** Step 7 — Integration
+- **下一步:** Step 8 — Tests
 - **最后更新:** 2026-08-24
 
 ---
@@ -319,6 +319,124 @@ Step 6 已完成设计、实现、测试、用户验证。
 
 ---
 
+# Step 7 — Learning Core Integration ✅
+
+## 实现
+
+Step 7 将 Learning Core 接入现有 Quest Runtime，同时保持原有游戏规则不变。
+
+核心链路：
+
+```text
+submitAnswer()
+      ↓
+submitQuest()
+      ↓
+EvaluationResult
+      ├──────────────→ Quest Progress
+      ├──────────────→ XP / Streak
+      │
+      └──────────────→ recordQuestSkillEvidence()
+                             ↓
+                       SkillEvidence
+                             ↓
+                       SkillMastery
+                             ↓
+                        GameSave
+```
+
+### GameSave
+
+`GameSave` 增加独立的 Learning State：
+
+```ts
+learning: {
+  skillEvidence: SkillEvidence[];
+  skillMastery: SkillMasteryMap;
+}
+```
+
+因此：
+
+```text
+Quest Progress ≠ Learning Progress
+```
+
+Skill 数据没有塞入 Quest Progress，也没有创建复杂的 `PlayerLearningState` Domain Model。
+
+### Quest 提交
+
+`gameStore.submitAnswer()` 在现有 Evaluation 完成后调用 `recordQuestSkillEvidence()`。
+
+每次真实 Quest 提交都会产生 Evidence：
+
+- Pass → Evidence
+- Fail → Evidence
+- Replay → Evidence
+
+历史 Evidence 会持续累积；Mastery 基于完整历史 Evidence 重新计算。
+
+### Persistence
+
+继续使用现有 `GameRepository` / `LocalStorageGameRepository`，没有增加新的 Repository。
+
+旧存档兼容：
+
+```text
+save.learning 不存在
+        ↓
+skillEvidence: []
+skillMastery: {}
+```
+
+不修改现有 `version: 1`，避免无必要的存档迁移。
+
+### 兼容性
+
+Step 7 没有修改：
+
+- Quest Evaluation
+- XP
+- Unlock
+- Boss
+- Chapter
+- Calibration
+- Mastery 算法
+
+也没有接入 AI、UI Learning Analytics、Knowledge Progress 或复杂推荐。
+
+### 验证
+
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+Step 7 已完成设计、实现、测试、用户验证。
+
+---
+
+# Step 8 — Tests 🟡 当前
+
+目标：为 Sprint 1 Learning Core 建立完整的回归测试边界，覆盖：
+
+- Knowledge Model
+- Quest → Knowledge
+- Quest → Skill Dimension
+- Evaluation → Evidence
+- Evidence 累积
+- Evidence → Mastery
+- GameSave Learning Persistence
+- Legacy Save Compatibility
+- Calibration 与 Skill Evidence 隔离
+- 现有 Quest / Progress / XP / Unlock / Boss 回归
+
+Step 8 不新增产品能力，重点是把 Sprint 1 已经完成的规则固化成可持续运行的测试。
+
+---
+
 # 当前 Sprint 计划
 
 | Step | 内容 | 状态 |
@@ -329,8 +447,8 @@ Step 6 已完成设计、实现、测试、用户验证。
 | 4 | Skill / Evidence / Mastery | ✅ |
 | 5 | Calibration | ✅ |
 | 6 | Async World 最小内容集 | ✅ |
-| 7 | Integration | 🟡 下一步 |
-| 8 | Tests | ⬜ |
+| 7 | Learning Core Integration | ✅ |
+| 8 | Tests | 🟡 当前 |
 
 ---
 
