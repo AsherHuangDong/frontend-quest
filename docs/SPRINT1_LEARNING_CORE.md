@@ -2,7 +2,7 @@
 
 > Sprint: Sprint 1  
 > Status: In Progress  
-> Current Step: Step 5 — Calibration  
+> Current Step: Step 6 — Async World 最小内容集  
 > MVP World: JavaScript Async World  
 > AI Dependency: None
 
@@ -65,8 +65,8 @@ Mastery
 | 2 | Knowledge Model | ✅ |
 | 3 | Quest Content Schema | ✅ |
 | 4 | Skill / Evidence / Mastery | ✅ |
-| 5 | Calibration | 🟡 当前 |
-| 6 | Async World 最小内容集 | ⬜ |
+| 5 | Calibration | ✅ |
+| 6 | Async World 最小内容集 | 🟡 当前 |
 | 7 | Integration | ⬜ |
 | 8 | Tests | ⬜ |
 
@@ -281,26 +281,17 @@ Step 4 已完成设计、实现、测试和用户验证。
 
 ## 状态
 
-**下一步。**
+**已完成。**
 
-## 目标
+## 实现
 
-玩家进入 Async World 时，通过少量 Calibration Quest 判断初始能力，而不是简单强制从第一关开始。
+```text
+src/domain/calibration/types.ts
+src/domain/calibration/calibration.ts
+src/domain/calibration/calibration.test.ts
+```
 
-Calibration 是能力估计，不是最终 Mastery。
-
-## MVP 原则
-
-- 使用确定性规则
-- 不使用 AI
-- 不使用 IRT / Bayesian
-- 不修改现有 Quest Pass / Fail
-- 不直接修改长期 Mastery
-- Calibration Result 与 SkillEvidence / SkillMastery 保持语义分离
-
-## 当前设计任务
-
-进入实现前先检查实际代码，并确定最小模型：
+## 最小模型
 
 ```text
 CalibrationDefinition
@@ -309,22 +300,57 @@ CalibrationAttempt
         ↓
 CalibrationResult
         ↓
-初始能力区间 / 起始位置
+recommendedQuestId
 ```
 
-需要重点决定：
+Calibration 复用现有 Quest Content，不创建新的 CalibrationQuest / AssessmentQuest 类型体系。
 
-- Calibration Quest 如何声明
-- Calibration Result 如何保存
-- 如何从结果映射 Beginner / Intermediate / Advanced
-- Calibration 如何与现有 Quest Unlock 兼容
-- 如何避免 Calibration 污染正常 Quest Evidence / Mastery
+### 规则
+
+- Calibration Score 使用所有回答分数的简单平均。
+- Level 使用 Calibration Quest 的最高连续通过层级确定。
+- Calibration 不产生 SkillEvidence。
+- Calibration 不修改 SkillMastery。
+- Calibration 不修改 QuestProgress。
+- Calibration 不修改现有 Unlock 规则。
+- `recommendedQuestId` 只表达推荐起点，真正接入游戏 Runtime 留到 Step 7。
+
+### 边界
+
+Step 5 没有引入 AI、IRT、Bayesian、自适应选题、复杂推荐、Calibration History、UI，也没有重构 Quest / Progress / GameStore。
+
+### 验证
+
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+Step 5 已完成设计、实现、测试和用户验证。
 
 ---
 
 # Step 6 — Async World 最小内容集
 
+## 状态
+
+**下一步。**
+
 将 Async World 的最小知识、Quest、Boss 内容真正组织起来，覆盖 Explore、Understand、Reason、Debug、Boss。
+
+进入实现前需要检查实际内容代码，并确定最小内容集：
+
+- KnowledgeNode 是否完整
+- Knowledge prerequisite 是否形成合理 DAG
+- Quest 是否覆盖 Knowledge
+- Quest 是否覆盖 SkillDimension
+- QuestType 是否合理
+- 是否存在 Boss / Boss Phase 内容缺口
+- Calibration 使用的 Quest 是否与正常内容一致
+
+Step 6 不引入新的 Runtime 模型，不修改现有 Evaluation、XP、Unlock、Boss 规则。
 
 ---
 
