@@ -2,7 +2,7 @@
 
 > Sprint: Sprint 1  
 > Status: In Progress  
-> Current Step: Step 4 — Skill / Evidence / Mastery  
+> Current Step: Step 5 — Calibration  
 > MVP World: JavaScript Async World  
 > AI Dependency: None
 
@@ -64,8 +64,8 @@ Mastery
 | 1 | 仓库盘点 + Learning Core 第一版数据模型设计 | ✅ |
 | 2 | Knowledge Model | ✅ |
 | 3 | Quest Content Schema | ✅ |
-| 4 | Skill / Evidence / Mastery | 🟡 当前 |
-| 5 | Calibration | ⬜ |
+| 4 | Skill / Evidence / Mastery | ✅ |
+| 5 | Calibration | 🟡 当前 |
 | 6 | Async World 最小内容集 | ⬜ |
 | 7 | Integration | ⬜ |
 | 8 | Tests | ⬜ |
@@ -199,56 +199,126 @@ Step 3 已完成，进入 Step 4。
 
 # Step 4 — Skill / Evidence / Mastery
 
-## 目标
+## 状态
 
-建立能力证据与掌握度模型：
+**已完成。**
+
+## 实现
+
+```text
+src/domain/skill/types.ts
+src/domain/skill/mastery.ts
+src/domain/skill/mastery.test.ts
+src/application/useCases/recordQuestSkillEvidence.ts
+src/application/useCases/recordQuestSkillEvidence.test.ts
+```
+
+## 最小模型
 
 ```text
 EvaluationResult
       ↓
-SkillEvidence
+SkillEvidence[]
       ↓
-SkillMastery
+SkillMasteryMap
 ```
 
-Skill 初版：
+### SkillEvidence
+
+```ts
+interface SkillEvidence {
+  id: string;
+  questId: string;
+  knowledgeNodeIds: string[];
+  skillDimension: SkillDimension;
+  score: number;
+  passed: boolean;
+  createdAt: string;
+}
+```
+
+Evidence 表示一次实际学习行为产生的事实。一个 Quest 可以通过多个 `skillDimensions` 产生多条 Evidence；Pass / Fail 都产生 Evidence；Evidence 使用最终 Evaluation Score。
+
+### SkillMastery
+
+```ts
+interface SkillMastery {
+  skillDimension: SkillDimension;
+  score: number;
+  evidenceCount: number;
+  updatedAt: string;
+}
+```
+
+Mastery 是 Evidence 的派生状态，MVP 使用确定性的简单平均：
 
 ```text
-Recall
-Understand
-Apply
-Debug
-Transfer
+mastery.score = average(all evidence scores for this skill)
 ```
 
-## MVP 边界
+没有 Evidence 时不生成 Mastery。
 
-- 不实现复杂统计模型
-- 不接入 AI
-- 不做 Bayesian / IRT
-- 不修改现有 Quest Pass / Fail 规则
-- Evidence 是对 Evaluation 的结构化学习证据
-- Mastery 属于 Player Progress，不属于 Content
+### 边界
 
-## 当前任务
+Step 4 没有改变现有 Evaluation、Quest Progress、XP、Unlock、Boss、Chapter、GameStore 行为，也没有提前实现 Calibration、AI、推荐、复杂 Mastery 算法、Knowledge Mastery 或 UI。
 
-实现前先检查实际代码并设计最小模型：
+Skill Progress 与 Quest Progress 保持独立；Evidence 作为可解释的学习事实，Mastery 作为其派生结果。
 
-- SkillEvidence
-- SkillMastery
-- EvaluationResult 与 Evidence 的关系
-- Evidence 如何影响 Mastery
-- Player Progress 中如何保存 Mastery
+### 验证
 
-然后再实现、测试并接入现有 Quest Flow。
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+Step 4 已完成设计、实现、测试和用户验证。
 
 ---
 
 # Step 5 — Calibration
 
-玩家进入一个知识世界时，通过少量 Calibration Quest 判断初始能力，而不是强制从第一关开始。
+## 状态
 
-初版采用确定性规则，不使用 AI、IRT 或 Bayesian 模型。
+**下一步。**
+
+## 目标
+
+玩家进入 Async World 时，通过少量 Calibration Quest 判断初始能力，而不是简单强制从第一关开始。
+
+Calibration 是能力估计，不是最终 Mastery。
+
+## MVP 原则
+
+- 使用确定性规则
+- 不使用 AI
+- 不使用 IRT / Bayesian
+- 不修改现有 Quest Pass / Fail
+- 不直接修改长期 Mastery
+- Calibration Result 与 SkillEvidence / SkillMastery 保持语义分离
+
+## 当前设计任务
+
+进入实现前先检查实际代码，并确定最小模型：
+
+```text
+CalibrationDefinition
+        ↓
+CalibrationAttempt
+        ↓
+CalibrationResult
+        ↓
+初始能力区间 / 起始位置
+```
+
+需要重点决定：
+
+- Calibration Quest 如何声明
+- Calibration Result 如何保存
+- 如何从结果映射 Beginner / Intermediate / Advanced
+- Calibration 如何与现有 Quest Unlock 兼容
+- 如何避免 Calibration 污染正常 Quest Evidence / Mastery
 
 ---
 
