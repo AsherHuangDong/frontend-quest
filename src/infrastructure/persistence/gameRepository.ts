@@ -5,6 +5,10 @@ export interface GameSave {
   version: 1;
   player: Player;
   progress: ProgressMap;
+  gameplay: {
+    currentStreak: number;
+    bestStreak: number;
+  };
 }
 
 export interface GameRepository {
