@@ -1,4 +1,4 @@
-import { evaluateChoice } from '../../domain/quest/evaluator';
+import { evaluateChallenge } from '../../domain/quest/evaluator';
 import type { EvaluationResult, Quest } from '../../domain/quest/types';
 import type { Player } from '../../domain/player/types';
 import type { ProgressMap, QuestProgress } from '../../domain/progress/types';
@@ -17,7 +17,7 @@ export function submitQuest(
   player: Player,
   progress: ProgressMap,
 ): SubmitQuestResult {
-  const evaluation = evaluateChoice(quest.challenge, answer);
+  const evaluation = evaluateChallenge(quest.challenge, answer);
   const previous = progress[quest.id];
 
   const nextProgress: QuestProgress = {
