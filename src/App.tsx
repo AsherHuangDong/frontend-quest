@@ -1,5 +1,7 @@
 import { useGameStore, getQuest } from './application/gameStoreV2';
 import { calculateLevel } from './domain/player/level';
+import { getPhaseStatus } from './domain/boss/stateMachine';
+import { asyncBoss } from './content/bosses/asyncBoss';
 import type { Challenge } from './domain/quest/types';
 import { getHintPenalty } from './domain/quest/scoring';
 import './styles.css';
@@ -48,8 +50,11 @@ export default function App() {
   const progress = useGameStore((state) => state.progress);
   const currentStreak = useGameStore((state) => state.currentStreak);
   const bestStreak = useGameStore((state) => state.bestStreak);
+  const bossProgress = useGameStore((state) => state.bossProgress);
   const runtime = useGameStore((state) => state.runtime);
   const startQuest = useGameStore((state) => state.startQuest);
+  const startBossPhase = useGameStore((state) => state.startBossPhase);
+  const startBoss = useGameStore((state) => state.startBoss);
   const selectAnswer = useGameStore((state) => state.selectAnswer);
   const useHint = useGameStore((state) => state.useHint);
   const submitAnswer = useGameStore((state) => state.submitAnswer);
@@ -60,6 +65,10 @@ export default function App() {
   const level = calculateLevel(player.xp);
   const hints = activeQuest?.hints ?? [];
   const nextHintIndex = runtime?.hintsUsed ?? 0;
+  const allChapterQuestsCleared = asyncBoss.phases.every((phase) =>
+    phase.questIds.every((questId) => progress[questId]?.status === 'cleared'),
+  );
+  const currentBossPhase = asyncBoss.phases[bossProgress.currentPhaseIndex];
 
   return (
     <main className="app-shell">
@@ -88,8 +97,9 @@ export default function App() {
           <p>从 Promise 开始，击败第一批知识小怪。</p>
 
           <div className="quest-list">
-            {['promise-basics', 'promise-chain'].map((questId, index) => {
-              const quest = getQuest(questId)!;
+            {asyncBoss.phases.flatMap((phase) => phase.questIds).map((questId, index) => {
+              const quest = getQuest(questId);
+              if (!quest) return null;
               const questProgress = progress[questId];
               const locked = questProgress.status === 'locked';
               const cleared = questProgress.status === 'cleared';
@@ -116,16 +126,56 @@ export default function App() {
               );
             })}
           </div>
+
+          {allChapterQuestsCleared && (
+            <section className="boss-panel">
+              <span className="chapter-label">BOSS · FINAL TRIAL</span>
+              <h2>👹 {asyncBoss.title}</h2>
+              <p>{asyncBoss.description}</p>
+              <p>通关奖励：+{asyncBoss.rewardXp} XP</p>
+
+              <ol>
+                {asyncBoss.phases.map((phase, index) => {
+                  const status = getPhaseStatus(asyncBoss, bossProgress, index);
+                  const score = bossProgress.phaseScores[phase.id];
+                  return (
+                    <li key={phase.id}>
+                      <strong>{phase.title}</strong>{' '}
+                      {status === 'CLEARED' && `✓ ${score} 分`}
+                      {status === 'ACTIVE' && '⚔️ 当前阶段'}
+                      {status === 'LOCKED' && '🔒'}
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {bossProgress.status === 'AVAILABLE' && (
+                <button className="submit-button" onClick={startBoss}>进入 Boss 战</button>
+              )}
+              {bossProgress.status === 'IN_PROGRESS' && currentBossPhase && (
+                <button className="submit-button" onClick={startBossPhase}>
+                  挑战 {currentBossPhase.title}
+                </button>
+              )}
+              {bossProgress.status === 'CLEARED' && <p className="reward-note">🏆 异步之王已击败！</p>}
+            </section>
+          )}
         </section>
       ) : activeQuest ? (
         <section className="challenge-card">
           <div className="challenge-header">
             <button className="back-button" onClick={exitQuest}>← 返回关卡地图</button>
-            <span>+{activeQuest.reward.xp} XP</span>
+            <span>{runtime.bossPhaseId ? `👹 ${asyncBoss.title}` : `+${activeQuest.reward.xp} XP`}</span>
           </div>
 
           {!runtime.result ? (
             <>
+              {runtime.bossPhaseId && (
+                <div className="boss-phase-banner">
+                  <strong>{currentBossPhase?.title}</strong>
+                  <span>需要 ≥ {currentBossPhase?.requiredScore} 分</span>
+                </div>
+              )}
               <span className="chapter-label">QUEST · {activeQuest.title}</span>
               <ChallengeContent
                 challenge={activeQuest.challenge}
@@ -158,7 +208,7 @@ export default function App() {
 
               {activeQuest.challenge.type !== 'code' && (
                 <button className="submit-button" disabled={!runtime.selectedAnswer} onClick={submitAnswer}>
-                  提交答案
+                  {runtime.bossPhaseId ? '提交 Boss 挑战' : '提交答案'}
                 </button>
               )}
             </>
@@ -169,7 +219,13 @@ export default function App() {
               <h2>{runtime.result.passed ? '挑战成功！' : '再想想。'}</h2>
               <strong>{runtime.result.score} 分</strong>
               <p>{runtime.result.feedback}</p>
-              {runtime.result.passed && (
+              {runtime.bossPhaseId && !runtime.result.passed && currentBossPhase && (
+                <p className="reward-note">Boss 阶段需要至少 {currentBossPhase.requiredScore} 分，当前阶段不会推进。</p>
+              )}
+              {runtime.bossPhaseId && runtime.result.passed && bossProgress.status === 'CLEARED' && (
+                <p className="reward-note">🏆 击败异步之王！获得 +{asyncBoss.rewardXp} XP。</p>
+              )}
+              {!runtime.bossPhaseId && runtime.result.passed && (
                 <p className="reward-note">
                   {runtime.hintsUsed > 0
                     ? `使用了 ${runtime.hintsUsed} 次提示，熟练度最高为 ${runtime.result.score}%。`
