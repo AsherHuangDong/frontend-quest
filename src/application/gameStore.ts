@@ -18,8 +18,10 @@ interface GameState {
   progress: ProgressMap;
   runtime: QuestRuntime | null;
   startQuest: (questId: string) => void;
-  submitAnswer: (answer: string) => void;
+  selectAnswer: (answer: string) => void;
+  submitAnswer: () => void;
   retryQuest: () => void;
+  exitQuest: () => void;
 }
 
 const repository = new LocalStorageGameRepository();
@@ -60,22 +62,25 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!progress || progress.status === 'locked') return;
 
     set({
-      runtime: {
-        questId,
-        selectedAnswer: null,
-        result: null,
-      },
+      runtime: { questId, selectedAnswer: null, result: null },
     });
   },
 
-  submitAnswer: (answer) => {
-    const { runtime, player, progress } = get();
+  selectAnswer: (answer) => {
+    const { runtime } = get();
     if (!runtime || runtime.result) return;
+
+    set({ runtime: { ...runtime, selectedAnswer: answer } });
+  },
+
+  submitAnswer: () => {
+    const { runtime, player, progress } = get();
+    if (!runtime || runtime.result || !runtime.selectedAnswer) return;
 
     const quest = quests.find((item) => item.id === runtime.questId);
     if (!quest) return;
 
-    const result = submitQuest(quest, answer, player, progress);
+    const result = submitQuest(quest, runtime.selectedAnswer, player, progress);
     const nextProgress = { ...progress, [quest.id]: result.progress };
 
     for (const unlockedQuestId of result.unlockedQuestIds) {
@@ -94,32 +99,19 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       player: result.player,
       progress: nextProgress,
-      runtime: {
-        ...runtime,
-        selectedAnswer: answer,
-        result: result.evaluation,
-      },
+      runtime: { ...runtime, result: result.evaluation },
     });
   },
 
   retryQuest: () => {
     const { runtime } = get();
     if (!runtime) return;
-
-    set({
-      runtime: {
-        questId: runtime.questId,
-        selectedAnswer: null,
-        result: null,
-      },
-    });
+    set({ runtime: { questId: runtime.questId, selectedAnswer: null, result: null } });
   },
+
+  exitQuest: () => set({ runtime: null }),
 }));
 
 export function getQuest(questId: string): Quest | undefined {
   return quests.find((quest) => quest.id === questId);
-}
-
-export function getPlayerLevel(player: Player): number {
-  return Math.floor(player.xp / 100) + 1;
 }
