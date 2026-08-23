@@ -2,9 +2,11 @@ import { create } from 'zustand';
 import type { EvaluationResult, Quest } from '../domain/quest/types';
 import type { Player } from '../domain/player/types';
 import type { ProgressMap } from '../domain/progress/types';
+import type { SkillEvidence, SkillMasteryMap } from '../domain/skill/types';
 import { advanceStreak, resetStreak } from '../domain/player/streak';
 import { quests } from '../content/quests';
 import { submitQuest } from './useCases/submitQuest';
+import { recordQuestSkillEvidence } from './useCases/recordQuestSkillEvidence';
 import { LocalStorageGameRepository } from '../infrastructure/persistence/localStorageGameRepository';
 import type { GameSave } from '../infrastructure/persistence/gameRepository';
 
@@ -17,6 +19,8 @@ interface QuestRuntime {
 interface GameState {
   player: Player;
   progress: ProgressMap;
+  skillEvidence: SkillEvidence[];
+  skillMastery: SkillMasteryMap;
   currentStreak: number;
   bestStreak: number;
   runtime: QuestRuntime | null;
@@ -50,6 +54,7 @@ function loadSave(): GameSave {
   if (save) {
     return {
       ...save,
+      learning: save.learning ?? { skillEvidence: [], skillMastery: {} },
       gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
     };
   }
@@ -58,6 +63,7 @@ function loadSave(): GameSave {
     version: 1,
     player: { id: 'player-1', name: 'Frontend Knight', xp: 0 },
     progress: createInitialProgress(),
+    learning: { skillEvidence: [], skillMastery: {} },
     gameplay: { currentStreak: 0, bestStreak: 0 },
   };
 }
@@ -67,6 +73,8 @@ const initialSave = loadSave();
 export const useGameStore = create<GameState>((set, get) => ({
   player: initialSave.player,
   progress: initialSave.progress,
+  skillEvidence: initialSave.learning.skillEvidence,
+  skillMastery: initialSave.learning.skillMastery,
   currentStreak: initialSave.gameplay.currentStreak,
   bestStreak: initialSave.gameplay.bestStreak,
   runtime: null,
@@ -85,7 +93,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   submitAnswer: () => {
-    const { runtime, player, progress, currentStreak, bestStreak } = get();
+    const { runtime, player, progress, skillEvidence, currentStreak, bestStreak } = get();
     if (!runtime || runtime.result || !runtime.selectedAnswer) return;
 
     const quest = quests.find((item) => item.id === runtime.questId);
@@ -96,7 +104,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     const result = submitQuest(quest, runtime.selectedAnswer, player, progress);
     const passed = result.evaluation.passed;
 
-    // A cleared quest stays cleared during replay, even if the replay fails.
     const nextQuestProgress = wasCleared && !passed
       ? { ...result.progress, status: 'cleared' as const }
       : result.progress;
@@ -118,10 +125,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       xp: result.player.xp + streak.bonusXp + replayAdjustment,
     };
 
+    const learning = recordQuestSkillEvidence(quest, result.evaluation, skillEvidence);
+
     repository.save({
       version: 1,
       player: nextPlayer,
       progress: nextProgress,
+      learning,
       gameplay: {
         currentStreak: streak.current,
         bestStreak: streak.best,
@@ -131,6 +141,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       player: nextPlayer,
       progress: nextProgress,
+      skillEvidence: learning.evidence,
+      skillMastery: learning.mastery,
       currentStreak: streak.current,
       bestStreak: streak.best,
       runtime: { ...runtime, result: result.evaluation },
