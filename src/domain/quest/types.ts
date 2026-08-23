@@ -1,5 +1,14 @@
 export type QuestStatus = 'locked' | 'available' | 'cleared';
 
+export type QuestType = 'explore' | 'understand' | 'reason' | 'debug';
+
+export type SkillDimension =
+  | 'recall'
+  | 'understand'
+  | 'apply'
+  | 'debug'
+  | 'transfer';
+
 export interface ChoiceOption {
   id: string;
   label: string;
@@ -42,6 +51,9 @@ export interface Quest {
   reward: Reward;
   prerequisiteQuestIds: string[];
   hints?: string[];
+  knowledgeNodeIds: string[];
+  skillDimensions: SkillDimension[];
+  type: QuestType;
 }
 
 export interface EvaluationResult {
