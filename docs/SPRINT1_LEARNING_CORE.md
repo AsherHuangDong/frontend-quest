@@ -2,7 +2,7 @@
 
 > Sprint: Sprint 1  
 > Status: In Progress  
-> Current Step: Step 2 — Knowledge Model  
+> Current Step: Step 3 — Quest Content Schema  
 > MVP World: JavaScript Async World  
 > AI Dependency: None
 
@@ -64,8 +64,8 @@ Mastery
 | Step | 内容 | 状态 |
 |---|---|---|
 | 1 | 仓库盘点 + Learning Core 第一版数据模型设计 | ✅ |
-| 2 | Knowledge Model | 🟡 当前 |
-| 3 | Quest Content Schema | ⬜ |
+| 2 | Knowledge Model | ✅ |
+| 3 | Quest Content Schema | 🟡 当前 |
 | 4 | Skill / Evidence / Mastery | ⬜ |
 | 5 | Calibration | ⬜ |
 | 6 | Async World 最小内容集 | ⬜ |
@@ -146,115 +146,111 @@ Persistence
 
 ## 状态
 
-**当前步骤。尚未开始实现。**
+**已完成。**
 
-## 目标
+## 实现
 
-将“知识”从现有 Quest 内容中独立出来，使系统能够明确表达：
+```text
+src/domain/knowledge/types.ts
+src/content/knowledge/asyncWorld.ts
+src/content/knowledge/asyncWorld.test.ts
+```
 
-- 一个 World 是什么
-- 一个 Knowledge Node 是什么
-- Async World 包含哪些知识节点
-- 知识节点之间有什么 prerequisite 关系
-
-## 本 Step 范围
-
-只处理：
+## 最小模型
 
 ```text
 World
-KnowledgeNode
-KnowledgeRelation / prerequisite
-Async World Knowledge Content
+ │
+ └── KnowledgeNode
+          │
+          └── prerequisiteIds
 ```
 
-不在本 Step 实现：
+`KnowledgeNode`：
 
-- Quest Content Schema
-- Skill / Evidence / Mastery
+```ts
+interface KnowledgeNode {
+  id: string;
+  worldId: string;
+  title: string;
+  description: string;
+  prerequisiteIds: string[];
+}
+```
+
+当前只用 `prerequisiteIds` 表达知识前置关系，不引入通用 Graph / Relation Engine。
+
+## Async World 第一版
+
+```text
+async-world
+├── promise
+├── promise-state
+├── microtask
+├── event-loop
+├── async-await
+└── race-condition
+```
+
+关系：
+
+```text
+promise
+ ├── promise-state
+ └── microtask
+       └── event-loop
+             └── async-await
+
+microtask + event-loop + async-await
+                 └── race-condition
+```
+
+## 边界
+
+Step 2 保持以下现有行为不变：
+
+- Quest Evaluation
+- XP
+- Unlock
+- Boss
+- Chapter
+- GameStore
+- Quest Progress
+
+没有提前实现：
+
+- Quest ↔ Knowledge 运行时关联
+- Skill
+- Evidence
+- Mastery
 - Calibration
-- Adaptive Engine
 - AI
-- 新 UI
-- 复杂知识图数据库
+- Graph Database / Graph Engine
+- Player Knowledge Progress
 
-## 设计目标
+## 验证
 
-Knowledge Model 应能够支持类似：
-
-```text
-Async World
-│
-├── Promise
-│   ├── Promise State
-│   └── then / catch / finally
-│
-├── Microtask
-│
-├── Event Loop
-│
-├── async / await
-│
-└── Race Condition
-```
-
-并能够表达必要的前置关系，例如：
+用户本地验证通过：
 
 ```text
-Promise
-  ↓
-Promise State
-  ↓
-then / catch / finally
-  ↓
-Microtask
-  ↓
-Event Loop
-  ↓
-async / await
+npm test       ✅
+npm run build  ✅
 ```
 
-实际关系不应为了画图而过度建模，应以 MVP 内容需求为准。
+Knowledge 现在作为独立 Domain / Content Model 存在，但尚未与 Quest Flow 建立运行时关联。
 
-## Step 2 开始前的代码检查要求
+## 验收结论
 
-实现前必须检查当前实际代码中的：
+- [x] World / KnowledgeNode Domain Model
+- [x] Async World 独立 Knowledge Content
+- [x] prerequisite 关系
+- [x] Domain 不依赖 React
+- [x] Knowledge Content 与 Player Progress 分离
+- [x] 现有 Quest / Boss / Chapter 闭环无回归
+- [x] Knowledge Model 测试
+- [x] 文档同步
 
-- `domain/quest`
-- `domain/chapter`
-- `content/quests`
-- `content/chapters`
-- `application/gameStore*`
-- `application/useCases`
-- `domain/progress`
-
-确认 Knowledge Model 与现有模型的兼容边界。
-
-## Step 2 设计原则
-
-1. Domain Model 不依赖 React。
-2. Knowledge Content 与 Player Progress 分离。
-3. 不为了未来图数据库提前设计复杂 Graph Engine。
-4. 不为了 AI 提前增加 AI 特有字段。
-5. Knowledge Node 应保持稳定、可被多个 Quest 引用。
-6. 不在本 Step 修改现有 Quest Evaluation 行为。
-7. 不在本 Step 改变 XP、Unlock、Boss 规则。
-8. 优先最小模型，能满足 Async World 即可。
-
-## Step 2 验收标准
-
-完成后至少应满足：
-
-- [ ] 存在明确的 World / Knowledge Node Domain Model。
-- [ ] Async World 有独立 Knowledge Content。
-- [ ] 可以表达 Knowledge Node 的 prerequisite 关系。
-- [ ] Domain 不依赖 React。
-- [ ] Knowledge Content 不依赖 Player Progress。
-- [ ] 现有 Quest / Boss / Chapter 闭环不回归。
-- [ ] 有针对核心 Knowledge Model 的测试。
-- [ ] 文档状态与实际代码保持一致。
-
-完成后才进入 Step 3。
+Step 2 已完成，进入 Step 3。
 
 ---
 
@@ -278,6 +274,15 @@ QuestDefinition
 ```
 
 需要保持现有 Quest / Evaluation 兼容，不进行大规模重构。
+
+## 当前范围
+
+实现前先检查实际代码，并确认最小扩展方案：
+
+- Quest 与 KnowledgeNode 建立关联
+- Quest 与 SkillDimension 建立关联
+- QuestType
+- 保持现有 Challenge / Evaluation 兼容
 
 ## 验收标准
 
