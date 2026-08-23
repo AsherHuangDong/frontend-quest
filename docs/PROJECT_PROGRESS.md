@@ -10,9 +10,9 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 1 — Learning Core
-- **当前阶段:** Step 2 完成：Knowledge Model
+- **当前阶段:** Step 3 完成：Quest Content Schema
 - **AI:** 暂不接入
-- **下一步:** Step 3 — Quest Content Schema
+- **下一步:** Step 4 — Skill / Evidence / Mastery
 - **最后更新:** 2026-08-23
 
 ---
@@ -56,8 +56,6 @@ Step 1 已完成。确认核心原则：Content 与 Player Progress 分离、Kno
 
 ### 实现
 
-已新增：
-
 ```text
 src/domain/knowledge/types.ts
 src/content/knowledge/asyncWorld.ts
@@ -86,85 +84,118 @@ interface KnowledgeNode {
 }
 ```
 
-当前只用 `prerequisiteIds` 表达知识前置关系，不引入通用 Graph / Relation Engine。
+Async World 第一版包含：Promise、Promise State、Microtask、Event Loop、async / await、Race Condition。
 
-### Async World Knowledge
+Step 2 保持 Quest Evaluation、XP、Unlock、Boss、Chapter、GameStore、Quest Progress 不变；没有提前实现 Skill、Evidence、Mastery、Calibration、AI、Graph Engine 或 Player Knowledge Progress。
 
-```text
-async-world
-├── promise
-├── promise-state
-├── microtask
-├── event-loop
-├── async-await
-└── race-condition
-```
-
-关系：
-
-```text
-promise
- ├── promise-state
- └── microtask
-       └── event-loop
-             └── async-await
-
-microtask + event-loop + async-await
-                 └── race-condition
-```
-
-### 边界
-
-Step 2 保持以下现有行为不变：
-
-- Quest Evaluation
-- XP
-- Unlock
-- Boss
-- Chapter
-- GameStore
-- Quest Progress
-
-没有提前实现：
-
-- Quest ↔ Knowledge 运行时关联
-- Skill
-- Evidence
-- Mastery
-- Calibration
-- AI
-- Graph Database / Graph Engine
-- Player Knowledge Progress
-
-### 验证
+验证：
 
 ```text
 npm test       ✅
 npm run build  ✅
 ```
 
-Knowledge 现在作为独立 Domain / Content Model 存在，但尚未与 Quest Flow 建立运行时关联。
+---
+
+# Step 3 — Quest Content Schema ✅
+
+### 实现
+
+```text
+src/domain/quest/types.ts
+src/content/quests.ts
+src/content/quests.test.ts
+```
+
+### Quest Schema
+
+在现有 `Quest` 上做最小扩展，没有引入新的 `QuestDefinition` / Runtime 模型：
+
+```ts
+type QuestType = 'explore' | 'understand' | 'reason' | 'debug';
+
+type SkillDimension =
+  | 'recall'
+  | 'understand'
+  | 'apply'
+  | 'debug'
+  | 'transfer';
+
+interface Quest {
+  // existing fields...
+  knowledgeNodeIds: string[];
+  skillDimensions: SkillDimension[];
+  type: QuestType;
+}
+```
+
+### Content
+
+现有 3 个 Quest 均已声明 Learning metadata：
+
+- `promise-basics` → `promise` → recall / understand → understand
+- `promise-chain` → `promise`, `microtask` → understand / apply → reason
+- `async-await-final` → `promise`, `event-loop`, `async-await` → apply / debug / transfer → reason
+
+测试覆盖：
+
+- 所有 Quest 都有 Knowledge 引用
+- Knowledge ID 必须存在于 Async World
+- SkillDimension 必须属于已定义集合
+- QuestType 必须属于已定义集合
+- 原有 Quest progression order 与 prerequisite 不变
+
+### 边界
+
+Step 3 只增加 Content Schema，不改变 Runtime 行为。
+
+没有修改：
+
+- Challenge / Evaluation
+- `submitQuest`
+- XP
+- Unlock
+- Boss
+- Chapter
+- GameStore
+- Player Progress
+
+没有提前实现：
+
+- SkillEvidence
+- SkillMastery
+- Player Skill State
+- Calibration
+- Knowledge Progress
+- AI
+- Recommendation
+- Graph Engine
+
+### 验证
+
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+Step 3 已完成设计、实现、测试和用户验证。
 
 ---
 
 # 当前 Sprint 计划
 
-## Step 3 — Quest Content Schema
-
-下一步实现：
-
-- Quest 与 KnowledgeNode 建立关联
-- Quest 与 SkillDimension 建立关联
-- QuestType
-- 保持现有 Challenge / Evaluation 兼容
-
-随后依次：
-
-1. Skill / Evidence / Mastery
-2. Calibration
-3. Async World 最小内容集
-4. Integration
-5. Tests
+| Step | 内容 | 状态 |
+|---|---|---|
+| 1 | 仓库盘点 + 第一版数据模型设计 | ✅ |
+| 2 | Knowledge Model | ✅ |
+| 3 | Quest Content Schema | ✅ |
+| 4 | Skill / Evidence / Mastery | 🟡 下一步 |
+| 5 | Calibration | ⬜ |
+| 6 | Async World 最小内容集 | ⬜ |
+| 7 | Integration | ⬜ |
+| 8 | Tests | ⬜ |
 
 ---
 
@@ -191,3 +222,31 @@ Knowledge 现在作为独立 Domain / Content Model 存在，但尚未与 Quest 
 3. `docs/SPRINT1_LEARNING_CORE.md` — Sprint 1 数据模型与实施计划
 
 然后从 `当前状态` 和 `下一步开发任务` 继续，不要重新设计已经确认的产品目标。
+
+---
+
+## 开发流程
+
+每完成一个明确 Step / 功能，必须执行：
+
+```text
+设计
+ ↓
+实现
+ ↓
+测试
+ ↓
+用户验证
+ ↓
+Commit
+ ↓
+更新 PROJECT_PROGRESS.md
+ ↓
+更新本 Sprint 文档
+ ↓
+更新 GitHub Issue
+ ↓
+进入下一 Step
+```
+
+**没有完成文档同步，就不视为该功能完整完成。**
