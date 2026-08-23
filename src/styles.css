@@ -28,8 +28,8 @@ h2 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
 .quest-number { font-size: 24px; font-weight: 700; color: #71717a; }
 .quest-info h3 { margin: 6px 0; font-size: 20px; }
 .quest-info p { margin: 0; color: #a1a1aa; }
-.quest-card button, .submit-button { border: 0; border-radius: 10px; padding: 12px 18px; color: #09090b; background: #f4f4f5; font-weight: 700; }
-.quest-card button:disabled, .submit-button:disabled { cursor: not-allowed; opacity: .45; }
+.quest-card button, .submit-button, .hint-button { border: 0; border-radius: 10px; padding: 12px 18px; color: #09090b; background: #f4f4f5; font-weight: 700; }
+.quest-card button:disabled, .submit-button:disabled, .hint-button:disabled { cursor: not-allowed; opacity: .45; }
 .mastery-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; color: #a1a1aa; font-size: 12px; }
 .mastery-bar { width: min(220px, 35vw); height: 6px; overflow: hidden; border-radius: 999px; background: #27272a; }
 .mastery-bar div { height: 100%; border-radius: inherit; background: #f4f4f5; transition: width .25s ease; }
@@ -40,6 +40,14 @@ h2 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
 .options button { display: flex; gap: 16px; align-items: center; width: 100%; text-align: left; padding: 18px; border: 1px solid #3f3f46; border-radius: 12px; color: #f4f4f5; background: #18181b; }
 .options button:hover, .options button.selected { border-color: #f4f4f5; background: #27272a; }
 .options button span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: #27272a; font-weight: 700; }
+.hint-panel { margin: 24px 0; padding: 18px; border: 1px solid #3f3f46; border-radius: 14px; background: #111113; }
+.hint-header { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.hint-header span { font-weight: 700; }
+.hint-header small { color: #a1a1aa; }
+.hint-content { margin: 14px 0; padding: 12px 14px; border-radius: 10px; background: #18181b; }
+.hint-content p { margin: 0 0 8px; color: #d4d4d8; line-height: 1.6; }
+.hint-content p:last-child { margin-bottom: 0; }
+.hint-button { margin-top: 14px; }
 .result { text-align: center; padding: 40px 0 16px; }
 .result-icon { font-size: 52px; margin-bottom: 14px; }
 .result > span { font-size: 12px; letter-spacing: .16em; color: #a1a1aa; }
@@ -51,4 +59,5 @@ h2 { font-size: clamp(28px, 4vw, 42px); margin: 12px 0; }
   .player-stats { flex-direction: column; }
   .quest-card { grid-template-columns: 40px 1fr; }
   .quest-card button { grid-column: 2; justify-self: start; }
+  .hint-header { align-items: flex-start; flex-direction: column; }
 }

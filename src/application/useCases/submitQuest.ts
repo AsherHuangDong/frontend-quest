@@ -1,4 +1,5 @@
 import { evaluateChallenge } from '../../domain/quest/evaluator';
+import { calculateScore } from '../../domain/quest/scoring';
 import type { EvaluationResult, Quest } from '../../domain/quest/types';
 import type { Player } from '../../domain/player/types';
 import type { ProgressMap, QuestProgress } from '../../domain/progress/types';
@@ -16,8 +17,13 @@ export function submitQuest(
   answer: string,
   player: Player,
   progress: ProgressMap,
+  hintsUsed = 0,
 ): SubmitQuestResult {
-  const evaluation = evaluateChallenge(quest.challenge, answer);
+  const baseEvaluation = evaluateChallenge(quest.challenge, answer);
+  const evaluation: EvaluationResult = {
+    ...baseEvaluation,
+    score: calculateScore(hintsUsed, baseEvaluation.passed),
+  };
   const previous = progress[quest.id];
 
   const nextProgress: QuestProgress = {

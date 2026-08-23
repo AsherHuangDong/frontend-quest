@@ -41,6 +41,7 @@ export interface Quest {
   challenge: Challenge;
   reward: Reward;
   prerequisiteQuestIds: string[];
+  hints?: string[];
 }
 
 export interface EvaluationResult {
