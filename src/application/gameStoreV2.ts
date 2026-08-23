@@ -54,11 +54,19 @@ function createInitialProgress(): ProgressMap {
   );
 }
 
+function mergeProgress(saved: ProgressMap): ProgressMap {
+  const defaults = createInitialProgress();
+  return Object.fromEntries(
+    quests.map((quest) => [quest.id, saved[quest.id] ?? defaults[quest.id]]),
+  );
+}
+
 function loadSave(): GameSave {
   const save = repository.load();
   if (save) {
     return {
       ...save,
+      progress: mergeProgress(save.progress),
       gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
     };
   }
