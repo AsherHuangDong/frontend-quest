@@ -4,11 +4,12 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 2 — Experience Core
-- **当前阶段:** Step 3 — Failure Recovery
+- **当前阶段:** Step 4 — XP / Level / Progress
 - **AI:** 暂不接入
 - **Sprint 1:** 已完成
 - **Step 1:** 已完成
 - **Step 2:** 已完成
+- **Step 3:** 已完成
 - **最后更新:** 2026-08-24
 
 ---
@@ -39,48 +40,39 @@ Unlock / Level / Boss
 |---|---|---|
 | 1 | Experience Flow / 状态边界 | ✅ |
 | 2 | Quest Experience Flow | ✅ |
-| 3 | Failure Recovery | 🟡 当前 |
-| 4 | XP / Level / Progress | ⬜ |
+| 3 | Failure Recovery | ✅ |
+| 4 | XP / Level / Progress | 🟡 当前 |
 | 5 | Boss Experience | ⬜ |
 | 6 | Integration + Tests | ⬜ |
 
 ---
 
-# Step 2 — Quest Experience Flow
+# Step 3 — Failure Recovery
 
 状态：✅ Completed
 
 完成内容：
 
-- 保持现有 Quest Runtime 结构
-- 未引入新的 Quest 状态机
-- 明确 Runtime 行为边界
-- 增加 Quest Experience Flow 回归测试
+- 保持现有 Quest Result 作为失败结果来源
+- 复用 EvaluationResult.feedback
+- 复用 Quest.hints
+- 保持 retryQuest 恢复流程
+- 增加 Failure Recovery 回归测试
+- 增加统一 Vitest localStorage 测试环境
 
 验证范围：
 
 ```text
-AVAILABLE
-   ↓
-startQuest
-   ↓
-ANSWER
-   ↓
-submitAnswer
-   ↓
-RESULT
-   ↓
-retry / exit
+Fail
+ ↓
+Feedback
+ ↓
+Hint
+ ↓
+Retry
+ ↓
+再次挑战
 ```
-
-已验证：
-
-- locked Quest 不可启动
-- available Quest 可启动
-- 未选择答案不能提交
-- Result 存在后不能修改答案
-- Retry 清理答题状态
-- Exit 清理 Runtime
 
 保持不变：
 
@@ -97,31 +89,6 @@ retry / exit
 npm test       ✅
 npm run build  ✅
 ```
-
----
-
-# 当前 Step 3 — Failure Recovery
-
-目标：
-
-```text
-Fail
- ↓
-Feedback
- ↓
-Hint / Explanation
- ↓
-Retry
- ↓
-再次挑战
-```
-
-约束：
-
-- 不接入 AI
-- 不新增 Recovery Engine
-- 不新增复杂状态机
-- 优先复用现有 Quest Result
 
 ---
 
