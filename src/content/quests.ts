@@ -9,6 +9,10 @@ export const quests: Quest[] = [
     difficulty: 1,
     prerequisiteQuestIds: [],
     reward: { xp: 50 },
+    hints: [
+      'Promise 描述的是一个未来才会得到结果的异步操作。',
+      '它并不会让 JavaScript 变成多线程，而是让异步结果的成功、失败和等待状态更容易被组织。',
+    ],
     challenge: {
       type: 'choice',
       question: '在 JavaScript 中，Promise 最核心的作用是什么？',
@@ -29,6 +33,10 @@ export const quests: Quest[] = [
     difficulty: 2,
     prerequisiteQuestIds: ['promise-basics'],
     reward: { xp: 80 },
+    hints: [
+      '先执行当前同步代码，再处理 Promise.then 注册的微任务。',
+      'console.log(3) 仍然属于当前同步任务，因此会在 then 回调之前执行。',
+    ],
     challenge: {
       type: 'output',
       question: `执行下面代码，最终输出顺序是什么？\n\nconsole.log(1);\nPromise.resolve().then(() => console.log(2));\nconsole.log(3);`,
