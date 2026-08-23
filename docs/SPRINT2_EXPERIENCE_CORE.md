@@ -1,8 +1,8 @@
 # Sprint 2 — Experience Core
 
 > Sprint: Sprint 2
-> Status: In Progress
-> Current Step: Step 5 — Boss Experience
+> Status: Completed
+> Current Step: Completed
 > MVP World: JavaScript Async World
 > AI Dependency: None
 
@@ -16,12 +16,12 @@
 | 2 | Quest Experience Flow | ✅ |
 | 3 | Failure Recovery | ✅ |
 | 4 | XP / Level / Progress | ✅ |
-| 5 | Boss Experience | 🟡 当前 |
-| 6 | Integration + Tests | ⬜ |
+| 5 | Boss Experience | ✅ |
+| 6 | Integration + Tests | ✅ |
 
 ---
 
-# Step 4 — XP / Level / Progress
+# Sprint 2 Final Summary
 
 ## 状态
 
@@ -29,50 +29,54 @@
 
 完成内容：
 
-- 验证 Quest Clear 后 XP 增长流程
-- 验证失败不会增加 XP
-- 验证已完成 Quest 不重复领取 XP
-- 验证 XP → Level 派生逻辑
-- 验证 Chapter Progression
-- 保持 Player.xp 作为唯一经验来源
-- 保持 Level 为派生值
+- Experience Flow
+- Quest Experience Flow
+- Failure Recovery
+- XP / Level / Progress
+- Boss Experience Integration
+- Full Integration Verification
 
-验证流程：
+---
+
+## Final Architecture
 
 ```text
-Quest Clear
+Quest
  ↓
-QuestProgress
+Evaluation
+ ↓
+Progress
  ↓
 XP
  ↓
 Level
  ↓
-Chapter Progression
+Learning Evidence
+ ↓
+Boss Progress
+ ↓
+Persistence
 ```
 
-保持不变：
+---
 
-- Evaluation
-- XP Reward
-- Unlock
-- Boss
-- Learning Core
+## Design Decisions
 
-验证结果：
+- XP is the only experience source.
+- Level is derived from XP and is not persisted.
+- QuestProgress is the gameplay source of truth.
+- Learning Evidence remains independent from gameplay progression.
+- Boss consumes progression state and provides milestone feedback.
+- Persistence maintains consistency between player, progress, learning and gameplay data.
+
+---
+
+## Verification
 
 ```text
 npm test       ✅
 npm run build  ✅
 ```
-
----
-
-# Step 5 — Boss Experience
-
-## 当前
-
-下一阶段：设计 Boss Experience 的最小体验闭环。
 
 ---
 
@@ -97,3 +101,9 @@ Commit
  ↓
 进入下一 Step
 ```
+
+---
+
+## Next
+
+Sprint 3 Planning
