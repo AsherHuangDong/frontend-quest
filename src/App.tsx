@@ -45,6 +45,8 @@ function ChallengeContent({
 export default function App() {
   const player = useGameStore((state) => state.player);
   const progress = useGameStore((state) => state.progress);
+  const currentStreak = useGameStore((state) => state.currentStreak);
+  const bestStreak = useGameStore((state) => state.bestStreak);
   const runtime = useGameStore((state) => state.runtime);
   const startQuest = useGameStore((state) => state.startQuest);
   const selectAnswer = useGameStore((state) => state.selectAnswer);
@@ -62,9 +64,16 @@ export default function App() {
           <span className="eyebrow">FRONTEND QUEST</span>
           <h1>前端冒险者公会</h1>
         </div>
-        <div className="player-card">
-          <span>Lv.{level}</span>
-          <strong>{player.xp} XP</strong>
+        <div className="player-stats">
+          <div className="player-card">
+            <span>Lv.{level}</span>
+            <strong>{player.xp} XP</strong>
+          </div>
+          <div className="streak-card">
+            <span>🔥 连胜</span>
+            <strong>{currentStreak}</strong>
+            <small>最高 {bestStreak}</small>
+          </div>
         </div>
       </header>
 
@@ -88,6 +97,13 @@ export default function App() {
                     <span>QUEST · 难度 {quest.difficulty}</span>
                     <h3>{quest.title}</h3>
                     <p>{quest.description}</p>
+                    <div className="mastery-row">
+                      <span>熟练度</span>
+                      <div className="mastery-bar">
+                        <div style={{ width: `${questProgress.bestScore}%` }} />
+                      </div>
+                      <strong>{questProgress.bestScore}%</strong>
+                    </div>
                   </div>
                   <button disabled={locked} onClick={() => startQuest(quest.id)}>
                     {cleared ? '再次挑战' : locked ? '🔒 未解锁' : '开始挑战'}
@@ -125,6 +141,11 @@ export default function App() {
               <h2>{runtime.result.passed ? '挑战成功！' : '再想想。'}</h2>
               <strong>{runtime.result.score} 分</strong>
               <p>{runtime.result.feedback}</p>
+              {runtime.result.passed && (
+                <p className="reward-note">
+                  {currentStreak > 1 ? `🔥 ${currentStreak} 连胜，获得额外 XP 奖励！` : '获得首通 XP 奖励！'}
+                </p>
+              )}
               <button className="submit-button" onClick={runtime.result.passed ? exitQuest : retryQuest}>
                 {runtime.result.passed ? '返回关卡地图' : '重新挑战'}
               </button>
