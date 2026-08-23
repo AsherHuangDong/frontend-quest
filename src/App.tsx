@@ -7,8 +7,10 @@ export default function App() {
   const progress = useGameStore((state) => state.progress);
   const runtime = useGameStore((state) => state.runtime);
   const startQuest = useGameStore((state) => state.startQuest);
+  const selectAnswer = useGameStore((state) => state.selectAnswer);
   const submitAnswer = useGameStore((state) => state.submitAnswer);
   const retryQuest = useGameStore((state) => state.retryQuest);
+  const exitQuest = useGameStore((state) => state.exitQuest);
 
   const activeQuest = runtime ? getQuest(runtime.questId) : undefined;
   const level = calculateLevel(player.xp);
@@ -47,10 +49,7 @@ export default function App() {
                     <h3>{quest.title}</h3>
                     <p>{quest.description}</p>
                   </div>
-                  <button
-                    disabled={locked}
-                    onClick={() => startQuest(quest.id)}
-                  >
+                  <button disabled={locked} onClick={() => startQuest(quest.id)}>
                     {cleared ? '再次挑战' : locked ? '🔒 未解锁' : '开始挑战'}
                   </button>
                 </article>
@@ -61,34 +60,27 @@ export default function App() {
       ) : activeQuest ? (
         <section className="challenge-card">
           <div className="challenge-header">
-            <span>QUEST · {activeQuest.title}</span>
+            <button className="back-button" onClick={exitQuest}>← 返回关卡地图</button>
             <span>+{activeQuest.reward.xp} XP</span>
           </div>
 
           {!runtime.result ? (
             <>
+              <span className="chapter-label">QUEST · {activeQuest.title}</span>
               <h2>{activeQuest.challenge.question}</h2>
               <div className="options">
                 {activeQuest.challenge.options.map((option) => (
                   <button
                     className={runtime.selectedAnswer === option.id ? 'selected' : ''}
                     key={option.id}
-                    onClick={() => useGameStore.setState((state) => ({
-                      runtime: state.runtime
-                        ? { ...state.runtime, selectedAnswer: option.id }
-                        : null,
-                    }))}
+                    onClick={() => selectAnswer(option.id)}
                   >
                     <span>{option.id}</span>
                     {option.label}
                   </button>
                 ))}
               </div>
-              <button
-                className="submit-button"
-                disabled={!runtime.selectedAnswer}
-                onClick={() => submitAnswer(runtime.selectedAnswer!)}
-              >
+              <button className="submit-button" disabled={!runtime.selectedAnswer} onClick={submitAnswer}>
                 提交答案
               </button>
             </>
@@ -99,8 +91,8 @@ export default function App() {
               <h2>{runtime.result.passed ? '挑战成功！' : '再想想。'}</h2>
               <strong>{runtime.result.score} 分</strong>
               <p>{runtime.result.feedback}</p>
-              <button className="submit-button" onClick={retryQuest}>
-                {runtime.result.passed ? '再次挑战' : '重新挑战'}
+              <button className="submit-button" onClick={runtime.result.passed ? exitQuest : retryQuest}>
+                {runtime.result.passed ? '返回关卡地图' : '重新挑战'}
               </button>
             </div>
           )}
