@@ -10,9 +10,9 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 1 — Learning Core
-- **当前阶段:** Step 5 完成：Calibration
+- **当前阶段:** Step 6 完成：Async World 最小内容集
 - **AI:** 暂不接入
-- **下一步:** Step 6 — Async World 最小内容集
+- **下一步:** Step 7 — Integration
 - **最后更新:** 2026-08-24
 
 ---
@@ -233,51 +233,12 @@ CalibrationResult
 recommendedQuestId
 ```
 
-### CalibrationDefinition
-
-```ts
-interface CalibrationDefinition {
-  id: string;
-  worldId: string;
-  questIds: string[];
-}
-```
-
 Calibration 复用现有 Quest Content，不创建新的 CalibrationQuest / AssessmentQuest 类型体系。
-
-### CalibrationAttempt / Answer
-
-```ts
-interface CalibrationAnswer {
-  questId: string;
-  score: number;
-  passed: boolean;
-}
-
-interface CalibrationAttempt {
-  id: string;
-  calibrationId: string;
-  answers: CalibrationAnswer[];
-  completedAt: string;
-}
-```
-
-### CalibrationResult
-
-```ts
-interface CalibrationResult {
-  calibrationId: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  score: number;
-  recommendedQuestId: string | null;
-  completedAt: string;
-}
-```
 
 ### 规则
 
 - Calibration Score 使用所有回答分数的简单平均。
-- Level 使用 Calibration Quest 的**最高连续通过层级**确定。
+- Level 使用 Calibration Quest 的最高连续通过层级确定。
 - Calibration 不产生 SkillEvidence。
 - Calibration 不修改 SkillMastery。
 - Calibration 不修改 QuestProgress。
@@ -301,6 +262,63 @@ Step 5 已完成设计、实现、测试和用户验证。
 
 ---
 
+# Step 6 — Async World 最小内容集 ✅
+
+## 实现
+
+Async World Content 已补齐到最小可玩内容集：
+
+```text
+Knowledge
+├── Promise
+├── Promise State
+├── Microtask
+├── Event Loop
+├── async / await
+└── Race Condition
+```
+
+Quest：
+
+```text
+promise-basics
+promise-state
+promise-chain
+event-loop
+async-await-final
+race-condition
+```
+
+### 内容覆盖
+
+- 每个 Quest 都声明 Knowledge、SkillDimension 和 QuestType。
+- 六个 Async World KnowledgeNode 全部至少被一个 Quest 覆盖。
+- 新增 `promise-state`、`event-loop`、`race-condition` Quest。
+- 保持原有主线兼容：`async-await-final` 仍依赖 `promise-chain`，避免破坏已有存档迁移。
+- `race-condition` 在 `async-await-final` 后继续主线。
+- Chapter 内容与 Quest Content 保持同步。
+
+### 迁移回归
+
+Step 6 实现过程中发现新增 Quest 插入原主线会破坏旧存档 `progressMigration` 的 unlock 预期，已修正为不改变原有 `promise-basics → promise-chain → async-await-final` 主线，并增加新的学习节点/Quest，不强迫旧玩家重新完成新增 Quest。
+
+用户本地验证通过：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+### 边界
+
+Step 6 没有新增 Knowledge Domain、Graph Engine、AI、动态 Quest、推荐算法，也没有修改 Evaluation、XP、Unlock、Boss Runtime、Mastery 或 Evidence 规则。
+
+当前没有新增独立 Boss Content Schema；Boss Runtime 保持现有实现，综合 Boss Content 留待需要时在现有规则内处理。
+
+Step 6 已完成设计、实现、测试、用户验证。
+
+---
+
 # 当前 Sprint 计划
 
 | Step | 内容 | 状态 |
@@ -310,8 +328,8 @@ Step 5 已完成设计、实现、测试和用户验证。
 | 3 | Quest Content Schema | ✅ |
 | 4 | Skill / Evidence / Mastery | ✅ |
 | 5 | Calibration | ✅ |
-| 6 | Async World 最小内容集 | 🟡 下一步 |
-| 7 | Integration | ⬜ |
+| 6 | Async World 最小内容集 | ✅ |
+| 7 | Integration | 🟡 下一步 |
 | 8 | Tests | ⬜ |
 
 ---
