@@ -3,14 +3,11 @@
 ## 当前状态
 
 - **MVP:** Async World
-- **当前 Sprint:** Sprint 2 — Experience Core
-- **当前阶段:** Step 5 — Boss Experience
+- **当前 Sprint:** Sprint 3 Planning
+- **当前阶段:** Sprint 2 Completed
 - **AI:** 暂不接入
 - **Sprint 1:** 已完成
-- **Step 1:** 已完成
-- **Step 2:** 已完成
-- **Step 3:** 已完成
-- **Step 4:** 已完成
+- **Sprint 2:** 已完成
 - **最后更新:** 2026-08-24
 
 ---
@@ -43,48 +40,54 @@ Unlock / Level / Boss
 | 2 | Quest Experience Flow | ✅ |
 | 3 | Failure Recovery | ✅ |
 | 4 | XP / Level / Progress | ✅ |
-| 5 | Boss Experience | 🟡 当前 |
-| 6 | Integration + Tests | ⬜ |
+| 5 | Boss Experience | ✅ |
+| 6 | Integration + Tests | ✅ |
 
 ---
 
-# Step 4 — XP / Level / Progress
+# Sprint 2 Final Summary
 
 状态：✅ Completed
 
 完成内容：
 
-- 验证 Quest 完成后的 XP 增长流程
-- 验证失败不会获得 XP
-- 验证已完成 Quest 不重复奖励 XP
-- 验证 XP → Level 派生逻辑
-- 验证 Chapter Progression 派生逻辑
-- 保持 Player.xp 作为唯一经验来源
-- 保持 Level 为派生数据，不持久化
+- 完成 Experience Flow
+- 完成 Quest Experience Flow
+- 完成 Failure Recovery
+- 完成 XP / Level / Progress 验证
+- 完成 Boss Experience Integration
+- 完成完整链路测试验证
 
-验证范围：
+最终体验链路：
 
 ```text
-Quest Clear
+Quest
+ ↓
+Evaluation
  ↓
 QuestProgress
  ↓
-Player XP
+XP
  ↓
 Level
  ↓
-Chapter Progression
+Learning Evidence
+ ↓
+Boss Progress
+ ↓
+Persistence
 ```
 
-保持不变：
+设计原则保持：
 
-- Quest Evaluation
-- XP Reward 规则
-- Unlock 规则
-- Boss 规则
-- Learning Core
+- XP 作为唯一经验来源
+- Level 为派生数据，不持久化
+- QuestProgress 作为游戏进度事实来源
+- Learning Evidence 与游戏状态保持独立
+- Boss 消费 Progress 状态提供阶段反馈
+- Persistence 保持数据一致性
 
-用户验证：
+验证：
 
 ```text
 npm test       ✅
@@ -93,7 +96,7 @@ npm run build  ✅
 
 ---
 
-## 开发流程
+# 开发流程
 
 每完成一个明确 Step / 功能，必须执行：
 
