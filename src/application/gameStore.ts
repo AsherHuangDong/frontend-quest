@@ -16,6 +16,8 @@ interface QuestRuntime {
 interface GameState {
   player: Player;
   progress: ProgressMap;
+  currentStreak: number;
+  bestStreak: number;
   runtime: QuestRuntime | null;
   startQuest: (questId: string) => void;
   selectAnswer: (answer: string) => void;
@@ -43,10 +45,19 @@ function createInitialProgress(): ProgressMap {
 }
 
 function loadSave(): GameSave {
-  return repository.load() ?? {
+  const save = repository.load();
+  if (save) {
+    return {
+      ...save,
+      gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
+    };
+  }
+
+  return {
     version: 1,
     player: { id: 'player-1', name: 'Frontend Knight', xp: 0 },
     progress: createInitialProgress(),
+    gameplay: { currentStreak: 0, bestStreak: 0 },
   };
 }
 
@@ -55,6 +66,8 @@ const initialSave = loadSave();
 export const useGameStore = create<GameState>((set, get) => ({
   player: initialSave.player,
   progress: initialSave.progress,
+  currentStreak: initialSave.gameplay.currentStreak,
+  bestStreak: initialSave.gameplay.bestStreak,
   runtime: null,
 
   startQuest: (questId) => {
@@ -74,14 +87,23 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   submitAnswer: () => {
-    const { runtime, player, progress } = get();
+    const { runtime, player, progress, currentStreak, bestStreak } = get();
     if (!runtime || runtime.result || !runtime.selectedAnswer) return;
 
     const quest = quests.find((item) => item.id === runtime.questId);
     if (!quest) return;
 
+    const previous = progress[quest.id];
+    const wasCleared = previous?.status === 'cleared';
     const result = submitQuest(quest, runtime.selectedAnswer, player, progress);
-    const nextProgress = { ...progress, [quest.id]: result.progress };
+    const passed = result.evaluation.passed;
+
+    // A cleared quest remains cleared even when replayed and answered incorrectly.
+    const nextQuestProgress = wasCleared && !passed
+      ? { ...result.progress, status: 'cleared' as const }
+      : result.progress;
+
+    const nextProgress = { ...progress, [quest.id]: nextQuestProgress };
 
     for (const unlockedQuestId of result.unlockedQuestIds) {
       const current = nextProgress[unlockedQuestId];
@@ -90,15 +112,30 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
+    const nextStreak = passed && !wasCleared ? currentStreak + 1 : passed ? currentStreak : 0;
+    const nextBestStreak = Math.max(bestStreak, nextStreak);
+    const streakBonus = passed && !wasCleared ? Math.min(nextStreak - 1, 4) * 10 : 0;
+    const replayAdjustment = passed && wasCleared ? -quest.reward.xp : 0;
+    const nextPlayer = {
+      ...result.player,
+      xp: result.player.xp + streakBonus + replayAdjustment,
+    };
+
     repository.save({
       version: 1,
-      player: result.player,
+      player: nextPlayer,
       progress: nextProgress,
+      gameplay: {
+        currentStreak: nextStreak,
+        bestStreak: nextBestStreak,
+      },
     });
 
     set({
-      player: result.player,
+      player: nextPlayer,
       progress: nextProgress,
+      currentStreak: nextStreak,
+      bestStreak: nextBestStreak,
       runtime: { ...runtime, result: result.evaluation },
     });
   },
