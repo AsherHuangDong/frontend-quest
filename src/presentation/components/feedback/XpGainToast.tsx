@@ -1,12 +1,14 @@
 export interface XpGainToastProps {
-  amount: number;
+  amount?: number;
+  message?: string;
   source?: string;
 }
 
-export function XpGainToast({ amount, source }: XpGainToastProps) {
+export function XpGainToast({ amount = 0, message, source }: XpGainToastProps) {
   return (
     <div role="status">
-      +{amount} XP{source ? ` · ${source}` : ''}
+      {amount > 0 ? `+${amount} XP` : message}
+      {source ? ` · ${source}` : ''}
     </div>
   );
 }
