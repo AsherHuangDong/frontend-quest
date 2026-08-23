@@ -10,19 +10,19 @@ export const asyncBoss: BossDefinition = {
     {
       id: 'promise-phase',
       title: 'Phase 1 · Promise',
-      questIds: ['quest-01'],
+      questIds: ['promise-basics'],
       requiredScore: 80,
     },
     {
       id: 'event-loop-phase',
       title: 'Phase 2 · Event Loop',
-      questIds: ['quest-02'],
+      questIds: ['promise-chain'],
       requiredScore: 80,
     },
     {
       id: 'async-final-phase',
       title: 'Phase 3 · Final Trial',
-      questIds: ['quest-03'],
+      questIds: ['async-await-final'],
       requiredScore: 80,
     },
   ],
