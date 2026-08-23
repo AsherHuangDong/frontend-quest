@@ -10,9 +10,9 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 1 — Learning Core
-- **当前阶段:** Step 3 完成：Quest Content Schema
+- **当前阶段:** Step 4 完成：Skill / Evidence / Mastery
 - **AI:** 暂不接入
-- **下一步:** Step 4 — Skill / Evidence / Mastery
+- **下一步:** Step 5 — Calibration
 - **最后更新:** 2026-08-23
 
 ---
@@ -129,47 +129,74 @@ interface Quest {
 }
 ```
 
-### Content
+现有 3 个 Quest 均已声明 Learning metadata，并保持原有 prerequisite / progression 不变。
 
-现有 3 个 Quest 均已声明 Learning metadata：
+---
 
-- `promise-basics` → `promise` → recall / understand → understand
-- `promise-chain` → `promise`, `microtask` → understand / apply → reason
-- `async-await-final` → `promise`, `event-loop`, `async-await` → apply / debug / transfer → reason
+# Step 4 — Skill / Evidence / Mastery ✅
 
-测试覆盖：
+## 实现
 
-- 所有 Quest 都有 Knowledge 引用
-- Knowledge ID 必须存在于 Async World
-- SkillDimension 必须属于已定义集合
-- QuestType 必须属于已定义集合
-- 原有 Quest progression order 与 prerequisite 不变
+```text
+src/domain/skill/types.ts
+src/domain/skill/mastery.ts
+src/domain/skill/mastery.test.ts
+src/application/useCases/recordQuestSkillEvidence.ts
+src/application/useCases/recordQuestSkillEvidence.test.ts
+```
+
+## 最小模型
+
+```text
+EvaluationResult
+      ↓
+SkillEvidence[]
+      ↓
+SkillMasteryMap
+```
+
+### SkillEvidence
+
+Evidence 表示一次实际学习行为产生的事实：
+
+```ts
+interface SkillEvidence {
+  id: string;
+  questId: string;
+  knowledgeNodeIds: string[];
+  skillDimension: SkillDimension;
+  score: number;
+  passed: boolean;
+  createdAt: string;
+}
+```
+
+一个 Quest 可以通过多个 `skillDimensions` 产生多条 Evidence。Pass / Fail 都产生 Evidence，Evidence 使用最终 Evaluation Score。
+
+### SkillMastery
+
+```ts
+interface SkillMastery {
+  skillDimension: SkillDimension;
+  score: number;
+  evidenceCount: number;
+  updatedAt: string;
+}
+```
+
+Mastery 是 Evidence 的派生状态，MVP 使用确定性的简单平均：
+
+```text
+mastery.score = average(all evidence scores for this skill)
+```
+
+没有 Evidence 时不生成 Mastery。
 
 ### 边界
 
-Step 3 只增加 Content Schema，不改变 Runtime 行为。
+Step 4 没有改变现有 Evaluation、Quest Progress、XP、Unlock、Boss、Chapter、GameStore 行为，也没有提前实现 Calibration、AI、推荐、复杂 Mastery 算法、Knowledge Mastery 或 UI。
 
-没有修改：
-
-- Challenge / Evaluation
-- `submitQuest`
-- XP
-- Unlock
-- Boss
-- Chapter
-- GameStore
-- Player Progress
-
-没有提前实现：
-
-- SkillEvidence
-- SkillMastery
-- Player Skill State
-- Calibration
-- Knowledge Progress
-- AI
-- Recommendation
-- Graph Engine
+Skill Progress 与 Quest Progress 保持独立；Evidence 作为可解释的学习事实，Mastery 作为其派生结果。
 
 ### 验证
 
@@ -180,7 +207,7 @@ npm test       ✅
 npm run build  ✅
 ```
 
-Step 3 已完成设计、实现、测试和用户验证。
+Step 4 已完成设计、实现、测试和用户验证。
 
 ---
 
@@ -191,8 +218,8 @@ Step 3 已完成设计、实现、测试和用户验证。
 | 1 | 仓库盘点 + 第一版数据模型设计 | ✅ |
 | 2 | Knowledge Model | ✅ |
 | 3 | Quest Content Schema | ✅ |
-| 4 | Skill / Evidence / Mastery | 🟡 下一步 |
-| 5 | Calibration | ⬜ |
+| 4 | Skill / Evidence / Mastery | ✅ |
+| 5 | Calibration | 🟡 下一步 |
 | 6 | Async World 最小内容集 | ⬜ |
 | 7 | Integration | ⬜ |
 | 8 | Tests | ⬜ |
