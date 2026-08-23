@@ -2,7 +2,7 @@
 
 > Sprint: Sprint 2
 > Status: In Progress
-> Current Step: Step 4 — XP / Level / Progress
+> Current Step: Step 5 — Boss Experience
 > MVP World: JavaScript Async World
 > AI Dependency: None
 
@@ -15,13 +15,13 @@
 | 1 | Experience Flow / 状态边界 | ✅ |
 | 2 | Quest Experience Flow | ✅ |
 | 3 | Failure Recovery | ✅ |
-| 4 | XP / Level / Progress | 🟡 当前 |
-| 5 | Boss Experience | ⬜ |
+| 4 | XP / Level / Progress | ✅ |
+| 5 | Boss Experience | 🟡 当前 |
 | 6 | Integration + Tests | ⬜ |
 
 ---
 
-# Step 3 — Failure Recovery
+# Step 4 — XP / Level / Progress
 
 ## 状态
 
@@ -29,34 +29,34 @@
 
 完成内容：
 
-- 复用现有 Quest Result
-- 使用 EvaluationResult.feedback 提供失败反馈
-- 使用 Quest.hints 提供提示能力
-- 保持 retryQuest 恢复流程
-- 增加 Failure Recovery 回归测试
-- 增加统一 Vitest localStorage 测试环境
+- 验证 Quest Clear 后 XP 增长流程
+- 验证失败不会增加 XP
+- 验证已完成 Quest 不重复领取 XP
+- 验证 XP → Level 派生逻辑
+- 验证 Chapter Progression
+- 保持 Player.xp 作为唯一经验来源
+- 保持 Level 为派生值
 
 验证流程：
 
 ```text
-Fail
+Quest Clear
  ↓
-Feedback
+QuestProgress
  ↓
-Hint
+XP
  ↓
-Retry
+Level
  ↓
-再次挑战
+Chapter Progression
 ```
 
 保持不变：
 
 - Evaluation
-- XP
+- XP Reward
 - Unlock
 - Boss
-- Chapter
 - Learning Core
 
 验证结果：
@@ -68,11 +68,11 @@ npm run build  ✅
 
 ---
 
-# Step 4 — XP / Level / Progress
+# Step 5 — Boss Experience
 
 ## 当前
 
-下一阶段：设计 XP、Level、Progress 的最小体验闭环。
+下一阶段：设计 Boss Experience 的最小体验闭环。
 
 ---
 
