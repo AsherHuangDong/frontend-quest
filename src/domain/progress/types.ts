@@ -6,6 +6,7 @@ export interface QuestProgress {
   attempts: number;
   bestScore: number;
   lastScore: number | null;
+  mastery: number;
   clearedAt: string | null;
 }
 
