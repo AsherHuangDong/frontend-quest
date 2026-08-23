@@ -1,6 +1,46 @@
 import { useGameStore, getQuest } from './application/gameStore';
 import { calculateLevel } from './domain/player/level';
+import type { Challenge } from './domain/quest/types';
 import './styles.css';
+
+function ChallengeContent({
+  challenge,
+  selectedAnswer,
+  onSelect,
+}: {
+  challenge: Challenge;
+  selectedAnswer: string | null;
+  onSelect: (answer: string) => void;
+}) {
+  if (challenge.type === 'code') {
+    return (
+      <div className="result failure">
+        <div className="result-icon">🛠️</div>
+        <span>CODE CHALLENGE</span>
+        <h2>代码题即将开放</h2>
+        <p>当前已经预留 CodeEvaluator，后续会接入 Sandbox 和测试用例自动判题。</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <h2 className="question-text">{challenge.question}</h2>
+      <div className="options">
+        {challenge.options.map((option) => (
+          <button
+            className={selectedAnswer === option.id ? 'selected' : ''}
+            key={option.id}
+            onClick={() => onSelect(option.id)}
+          >
+            <span>{option.id}</span>
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export default function App() {
   const player = useGameStore((state) => state.player);
@@ -67,22 +107,16 @@ export default function App() {
           {!runtime.result ? (
             <>
               <span className="chapter-label">QUEST · {activeQuest.title}</span>
-              <h2>{activeQuest.challenge.question}</h2>
-              <div className="options">
-                {activeQuest.challenge.options.map((option) => (
-                  <button
-                    className={runtime.selectedAnswer === option.id ? 'selected' : ''}
-                    key={option.id}
-                    onClick={() => selectAnswer(option.id)}
-                  >
-                    <span>{option.id}</span>
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <button className="submit-button" disabled={!runtime.selectedAnswer} onClick={submitAnswer}>
-                提交答案
-              </button>
+              <ChallengeContent
+                challenge={activeQuest.challenge}
+                selectedAnswer={runtime.selectedAnswer}
+                onSelect={selectAnswer}
+              />
+              {activeQuest.challenge.type !== 'code' && (
+                <button className="submit-button" disabled={!runtime.selectedAnswer} onClick={submitAnswer}>
+                  提交答案
+                </button>
+              )}
             </>
           ) : (
             <div className={`result ${runtime.result.passed ? 'success' : 'failure'}`}>
