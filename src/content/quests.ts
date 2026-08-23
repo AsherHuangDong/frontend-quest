@@ -49,6 +49,30 @@ export const quests: Quest[] = [
       correctAnswer: 'B',
     },
   },
+  {
+    id: 'async-await-final',
+    chapterId: 'javascript-basics',
+    title: 'async / await 最终试炼',
+    description: '综合判断 async / await 与 Promise 的执行关系。',
+    difficulty: 3,
+    prerequisiteQuestIds: ['promise-chain'],
+    reward: { xp: 100 },
+    hints: [
+      'await 会暂停当前 async 函数的后续执行，但不会阻塞整个 JavaScript 主线程。',
+      'await 后续代码会在 Promise settled 后以微任务的形式继续执行。',
+    ],
+    challenge: {
+      type: 'choice',
+      question: `下面代码最终输出顺序是什么？\n\nasync function run() {\n  console.log('A');\n  await Promise.resolve();\n  console.log('B');\n}\nrun();\nconsole.log('C');`,
+      options: [
+        { id: 'A', label: 'A → B → C' },
+        { id: 'B', label: 'B → A → C' },
+        { id: 'C', label: 'A → C → B' },
+        { id: 'D', label: 'C → A → B' },
+      ],
+      correctAnswer: 'C',
+    },
+  },
 ];
 
 export const firstQuest = quests[0];

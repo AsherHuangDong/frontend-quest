@@ -2,9 +2,13 @@ import { create } from 'zustand';
 import type { EvaluationResult, Quest } from '../domain/quest/types';
 import type { Player } from '../domain/player/types';
 import type { ProgressMap } from '../domain/progress/types';
+import type { BossProgress } from '../domain/boss/types';
 import { advanceStreak, resetStreak } from '../domain/player/streak';
+import { completePhase, createBossProgress, startBoss } from '../domain/boss/stateMachine';
+import { asyncBoss } from '../content/bosses/asyncBoss';
 import { quests } from '../content/quests';
 import { submitQuest } from './useCases/submitQuest';
+import { mergeQuestProgress } from './progressMigration';
 import { LocalStorageGameRepository } from '../infrastructure/persistence/localStorageGameRepository';
 import type { GameSave } from '../infrastructure/persistence/gameRepository';
 
@@ -13,6 +17,7 @@ interface QuestRuntime {
   selectedAnswer: string | null;
   result: EvaluationResult | null;
   hintsUsed: number;
+  bossPhaseId: string | null;
 }
 
 interface GameState {
@@ -20,8 +25,11 @@ interface GameState {
   progress: ProgressMap;
   currentStreak: number;
   bestStreak: number;
+  bossProgress: BossProgress;
   runtime: QuestRuntime | null;
   startQuest: (questId: string) => void;
+  startBossPhase: () => void;
+  startBoss: () => void;
   selectAnswer: (answer: string) => void;
   useHint: () => void;
   submitAnswer: () => void;
@@ -32,25 +40,17 @@ interface GameState {
 const repository = new LocalStorageGameRepository();
 
 function createInitialProgress(): ProgressMap {
-  return Object.fromEntries(
-    quests.map((quest) => [
-      quest.id,
-      {
-        questId: quest.id,
-        status: quest.prerequisiteQuestIds.length === 0 ? 'available' : 'locked',
-        attempts: 0,
-        bestScore: 0,
-        lastScore: null,
-        clearedAt: null,
-      },
-    ]),
-  );
+  return mergeQuestProgress({}, quests);
 }
 
 function loadSave(): GameSave {
   const save = repository.load();
   if (save) {
-    return { ...save, gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 } };
+    return {
+      ...save,
+      progress: mergeQuestProgress(save.progress, quests),
+      gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
+    };
   }
 
   return {
@@ -62,18 +62,48 @@ function loadSave(): GameSave {
 }
 
 const initialSave = loadSave();
+const initialBossProgress = initialSave.gameplay.bossProgress ?? createBossProgress(asyncBoss.id);
 
 export const useGameStore = create<GameState>((set, get) => ({
   player: initialSave.player,
   progress: initialSave.progress,
   currentStreak: initialSave.gameplay.currentStreak,
   bestStreak: initialSave.gameplay.bestStreak,
+  bossProgress: initialBossProgress,
   runtime: null,
 
   startQuest: (questId) => {
     const progress = get().progress[questId];
     if (!progress || progress.status === 'locked') return;
-    set({ runtime: { questId, selectedAnswer: null, result: null, hintsUsed: 0 } });
+    set({ runtime: { questId, selectedAnswer: null, result: null, hintsUsed: 0, bossPhaseId: null } });
+  },
+
+  startBoss: () => {
+    const bossProgress = get().bossProgress;
+    const started = startBoss(bossProgress);
+    if (started === bossProgress) return;
+    repository.save({
+      version: 1,
+      player: get().player,
+      progress: get().progress,
+      gameplay: { currentStreak: get().currentStreak, bestStreak: get().bestStreak, bossProgress: started },
+    });
+    set({ bossProgress: started });
+  },
+
+  startBossPhase: () => {
+    const { bossProgress } = get();
+    if (bossProgress.status === 'CLEARED') return;
+    const phase = asyncBoss.phases[bossProgress.currentPhaseIndex];
+    const questId = phase?.questIds[0];
+    if (!phase || !questId) return;
+    const questProgress = get().progress[questId];
+    if (!questProgress || questProgress.status === 'locked') return;
+    const started = bossProgress.status === 'AVAILABLE' ? startBoss(bossProgress) : bossProgress;
+    set({
+      bossProgress: started,
+      runtime: { questId, selectedAnswer: null, result: null, hintsUsed: 0, bossPhaseId: phase.id },
+    });
   },
 
   selectAnswer: (answer) => {
@@ -91,7 +121,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   submitAnswer: () => {
-    const { runtime, player, progress, currentStreak, bestStreak } = get();
+    const { runtime, player, progress, currentStreak, bestStreak, bossProgress } = get();
     if (!runtime || runtime.result || !runtime.selectedAnswer) return;
 
     const quest = quests.find((item) => item.id === runtime.questId);
@@ -118,13 +148,21 @@ export const useGameStore = create<GameState>((set, get) => ({
       ? resetStreak(bestStreak)
       : advanceStreak(currentStreak, bestStreak, !wasCleared);
     const replayAdjustment = passed && wasCleared ? -quest.reward.xp : 0;
-    const nextPlayer = { ...result.player, xp: result.player.xp + streak.bonusXp + replayAdjustment };
+    let nextPlayer = { ...result.player, xp: result.player.xp + streak.bonusXp + replayAdjustment };
+    let nextBossProgress = bossProgress;
+
+    if (runtime.bossPhaseId) {
+      nextBossProgress = completePhase(asyncBoss, bossProgress, result.evaluation.score);
+      if (nextBossProgress.status === 'CLEARED' && bossProgress.status !== 'CLEARED') {
+        nextPlayer = { ...nextPlayer, xp: nextPlayer.xp + asyncBoss.rewardXp };
+      }
+    }
 
     repository.save({
       version: 1,
       player: nextPlayer,
       progress: nextProgress,
-      gameplay: { currentStreak: streak.current, bestStreak: streak.best },
+      gameplay: { currentStreak: streak.current, bestStreak: streak.best, bossProgress: nextBossProgress },
     });
 
     set({
@@ -132,6 +170,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       progress: nextProgress,
       currentStreak: streak.current,
       bestStreak: streak.best,
+      bossProgress: nextBossProgress,
       runtime: { ...runtime, result: result.evaluation },
     });
   },
@@ -139,7 +178,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   retryQuest: () => {
     const { runtime } = get();
     if (!runtime) return;
-    set({ runtime: { questId: runtime.questId, selectedAnswer: null, result: null, hintsUsed: 0 } });
+    set({ runtime: { ...runtime, selectedAnswer: null, result: null, hintsUsed: 0 } });
   },
 
   exitQuest: () => set({ runtime: null }),
