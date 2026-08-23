@@ -10,7 +10,7 @@ function ChallengeContent({ challenge, selectedAnswer, onSelect }: { challenge: 
     return <div className="result failure"><div className="result-icon">🛠️</div><span>CODE CHALLENGE</span><h2>代码题即将开放</h2></div>;
   }
 
-  return <><h2 className="question-text">{challenge.question}</h2><div className="options">{challenge.options.map((option) => <button className={selectedAnswer === option.id ? 'selected' : ''} key={option.id} onClick={() => onSelect(option.id)}><span>{option.id}</span>{option.label}</button>)}</div></>;
+  return <><h2 className="question-text">{challenge.question}</h2><div className="options">{challenge.options.map((option) => <button className={selectedAnswer === option.id ? 'selected' : ''} key={option.id} disabled={Boolean(selectedAnswer)} onClick={() => onSelect(option.id)}><span>{option.id}</span>{option.label}</button>)}</div></>;
 }
 
 export default function App() {
@@ -34,7 +34,7 @@ export default function App() {
     <main className="app-shell">
       <header className="topbar"><div><span className="eyebrow">FRONTEND QUEST</span><h1>前端冒险者公会</h1></div><div className="player-stats"><div className="player-card"><span>Lv.{level}</span><strong>{player.xp} XP</strong></div><div className="streak-card"><span>🔥 连胜</span><strong>{currentStreak}</strong><small>最高 {bestStreak}</small></div></div></header>
       {!runtime && <section className="chapter-card"><div className="quest-list">{asyncBoss.phases.flatMap((phase) => phase.questIds).map((questId)=><div className="quest-card" key={questId}><div className="quest-info"><h3>{questId}</h3></div><button onClick={()=>startQuest(questId)}>开始挑战</button></div>)}<button className="submit-button" onClick={startBoss}>进入 Boss 战</button></div></section>}
-      {runtime && activeQuest && <section className="challenge-card"><ChallengeContent challenge={activeQuest.challenge} selectedAnswer={runtime.selectedAnswer} onSelect={selectAnswer}/><div className="action-bar"><button className="submit-button" onClick={submitAnswer}>提交答案</button><button className="submit-button" onClick={runtime.result?.passed ? exitQuest : retryQuest}>继续</button><button className="hint-button" onClick={useHint}>提示</button><button className="submit-button" onClick={startBossPhase}>Boss阶段</button></div></section>}
+      {runtime && activeQuest && <section className="challenge-card"><ChallengeContent challenge={activeQuest.challenge} selectedAnswer={runtime.selectedAnswer} onSelect={selectAnswer}/><div className="action-bar"><button className="submit-button" disabled={!runtime.selectedAnswer || Boolean(runtime.result)} onClick={submitAnswer}>提交答案</button><button className="submit-button" onClick={runtime.result?.passed ? exitQuest : retryQuest}>{runtime.result ? '继续' : '重置'}</button><button className="hint-button" onClick={useHint}>提示</button><button className="submit-button" onClick={startBossPhase}>Boss阶段</button></div></section>}
     </main>
   </>;
 }
