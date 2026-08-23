@@ -12,7 +12,21 @@ export interface ChoiceChallenge {
   correctAnswer: string;
 }
 
-export type Challenge = ChoiceChallenge;
+export interface OutputChallenge {
+  type: 'output';
+  question: string;
+  options: ChoiceOption[];
+  correctAnswer: string;
+}
+
+export interface CodeChallenge {
+  type: 'code';
+  question: string;
+  starterCode: string;
+  language: 'javascript' | 'typescript';
+}
+
+export type Challenge = ChoiceChallenge | OutputChallenge | CodeChallenge;
 
 export interface Reward {
   xp: number;
@@ -33,4 +47,8 @@ export interface EvaluationResult {
   passed: boolean;
   score: number;
   feedback: string;
+}
+
+export interface ChallengeEvaluator<TChallenge extends Challenge = Challenge> {
+  evaluate(challenge: TChallenge, answer: string): EvaluationResult;
 }
