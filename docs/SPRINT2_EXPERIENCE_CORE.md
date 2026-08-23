@@ -2,7 +2,7 @@
 
 > Sprint: Sprint 2
 > Status: In Progress
-> Current Step: Step 3 — Failure Recovery
+> Current Step: Step 4 — XP / Level / Progress
 > MVP World: JavaScript Async World
 > AI Dependency: None
 
@@ -14,14 +14,14 @@
 |---|---|---|
 | 1 | Experience Flow / 状态边界 | ✅ |
 | 2 | Quest Experience Flow | ✅ |
-| 3 | Failure Recovery | 🟡 当前 |
-| 4 | XP / Level / Progress | ⬜ |
+| 3 | Failure Recovery | ✅ |
+| 4 | XP / Level / Progress | 🟡 当前 |
 | 5 | Boss Experience | ⬜ |
 | 6 | Integration + Tests | ⬜ |
 
 ---
 
-# Step 2 — Quest Experience Flow
+# Step 3 — Failure Recovery
 
 ## 状态
 
@@ -29,35 +29,26 @@
 
 完成内容：
 
-- 保持现有 Quest Runtime
-- 未引入新的 Quest 状态机
-- 明确 Runtime 行为边界
-- 增加 Quest Experience Flow 回归测试
+- 复用现有 Quest Result
+- 使用 EvaluationResult.feedback 提供失败反馈
+- 使用 Quest.hints 提供提示能力
+- 保持 retryQuest 恢复流程
+- 增加 Failure Recovery 回归测试
+- 增加统一 Vitest localStorage 测试环境
 
 验证流程：
 
 ```text
-AVAILABLE
-   ↓
-startQuest
-   ↓
-ANSWER
-   ↓
-submitAnswer
-   ↓
-RESULT
-   ↓
-retry / exit
+Fail
+ ↓
+Feedback
+ ↓
+Hint
+ ↓
+Retry
+ ↓
+再次挑战
 ```
-
-已验证：
-
-- locked Quest 不可启动
-- available Quest 可启动
-- 未选择答案不能提交
-- Result 后不可修改答案
-- Retry 恢复答题状态
-- Exit 清理 Runtime
 
 保持不变：
 
@@ -77,32 +68,11 @@ npm run build  ✅
 
 ---
 
-# Step 3 — Failure Recovery
+# Step 4 — XP / Level / Progress
 
 ## 当前
 
-开始设计与实现。
-
-目标：
-
-```text
-Fail
- ↓
-Feedback
- ↓
-Hint / Explanation
- ↓
-Retry
- ↓
-再次挑战
-```
-
-约束：
-
-- 不接入 AI
-- 不新增 Recovery Engine
-- 不新增复杂状态机
-- 优先复用现有 Quest Result
+下一阶段：设计 XP、Level、Progress 的最小体验闭环。
 
 ---
 
