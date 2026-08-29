@@ -10,6 +10,8 @@ export type { ReviewStateMap };
 export interface AdaptiveSaveState {
   calibration: CalibrationResult | null;
   review: ReviewStateMap;
+  /** ISO timestamp of last meaningful activity (for return experience). */
+  lastActiveAt?: string | null;
 }
 
 export interface GameSave {
@@ -33,6 +35,7 @@ export function createDefaultAdaptiveState(): AdaptiveSaveState {
   return {
     calibration: null,
     review: {},
+    lastActiveAt: null,
   };
 }
 
@@ -46,6 +49,17 @@ export function normalizeAdaptiveState(
   return {
     calibration: adaptive.calibration ?? null,
     review: adaptive.review ?? {},
+    lastActiveAt: adaptive.lastActiveAt ?? null,
+  };
+}
+
+export function touchAdaptiveActivity(
+  adaptive: AdaptiveSaveState,
+  now: string = new Date().toISOString(),
+): AdaptiveSaveState {
+  return {
+    ...adaptive,
+    lastActiveAt: now,
   };
 }
 
