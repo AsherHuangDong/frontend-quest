@@ -4,11 +4,33 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 3 Planning
-- **当前阶段:** Sprint 2 Completed
+- **当前阶段:** Sprint 1 / Sprint 2 已完成，进入 Adaptive Core 规划
 - **AI:** 暂不接入
 - **Sprint 1:** 已完成
 - **Sprint 2:** 已完成
-- **最后更新:** 2026-08-24
+- **最后更新:** 2026-08-30
+- **文档同步:** README 与本文件已与 main 实际状态对齐（含 adaptive quest selection 预研说明）
+
+---
+
+# Sprint 1 — Learning Core
+
+状态：✅ Completed
+
+详见 `docs/SPRINT1_LEARNING_CORE.md`。
+
+闭环：
+
+```text
+Knowledge → Quest → Evaluation → Evidence → Mastery → Persistence
+```
+
+验证：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
 
 ---
 
@@ -93,6 +115,44 @@ Persistence
 npm test       ✅
 npm run build  ✅
 ```
+
+---
+
+# Sprint 3 — Adaptive Core（Planning）
+
+状态：🟡 Planning（正式 Step 文档尚未创建）
+
+按 `docs/PROJECT_SPEC.md`，Sprint 3 目标范围：
+
+- Calibration
+- Difficulty
+- Quest Selection
+- Spaced Review
+
+目标：不同玩家开始拥有不同路径。
+
+## 已存在的最小预研（非正式 Step）
+
+Commit：`feat: add adaptive quest selection MVP`
+
+实现位置：
+
+```text
+src/application/useCases/getNextQuest.ts
+```
+
+行为：
+
+- 返回第一个「未 cleared」且「prerequisiteQuestIds 均已 cleared」的 Quest
+- 纯规则、无 scoring / ranking / AI
+
+说明：该实现可作为 Sprint 3 Quest Selection 的起点，但**尚未**纳入正式 Sprint 3 Step、验收标准或 Sprint 文档。规划 Sprint 3 时应先盘点并决定是否吸收、扩展或替换。
+
+## 下一步
+
+1. 创建 `docs/SPRINT3_ADAPTIVE_CORE.md`（或同等命名）并定义正式 Steps
+2. 盘点现有 Calibration / getNextQuest / Mastery 与 Adaptive 目标的差距
+3. 按「设计 → 实现 → 测试 → 用户验证 → Commit → 更新文档 → 更新 Issue」推进，不扩大 MVP 范围
 
 ---
 
