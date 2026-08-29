@@ -4,12 +4,12 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 3 — Adaptive Core
-- **当前 Step:** Step 3 — Quest Selection（扩展 getNextQuest）
+- **当前 Step:** Step 4 — Difficulty Path
 - **AI:** 暂不接入
 - **Sprint 1:** 已完成
 - **Sprint 2:** 已完成
 - **最后更新:** 2026-08-30
-- **文档同步:** Step 1 设计已锁定；Step 2 Calibration Content + Persist 已实现并有测试
+- **文档同步:** Step 3 selectNextQuest 已实现并有单测
 
 ---
 
@@ -38,31 +38,27 @@
 | 0 | Planning / Gap Inventory | ✅ |
 | 1 | Adaptive 边界 + 数据模型扩展设计 | ✅ |
 | 2 | Calibration Content + Persist + 接入 | ✅ |
-| 3 | Quest Selection（扩展 getNextQuest） | 🟡 当前 |
-| 4 | Difficulty Path | ⬜ |
+| 3 | Quest Selection（扩展 getNextQuest） | ✅ |
+| 4 | Difficulty Path | 🟡 当前 |
 | 5 | Spaced Review 最小模型 | ⬜ |
 | 6 | Integration + Tests | ⬜ |
 
-## Step 2 完成摘要
+## Step 3 完成摘要
 
-- Content：`src/content/calibration/asyncWorld.ts`（promise-basics → event-loop → async-await-final）
-- UseCase：`completeCalibration`（不产生 Evidence / XP / Progress）
-- Save：`GameSave.adaptive`（calibration + review 占位）
-- Store：`finishCalibration` + 旧存档默认 `adaptive`
-- 测试：content / useCase / repository / gameStore（含回归恢复）
+- `selectNextQuest({ quests, progress, calibration })`
+- 优先 `calibration.recommendedQuestId`（须为可选题：非 locked/cleared 且 prereq 满足）
+- 否则回退为候选列表第一项（与原 `getNextQuest` 一致）
+- `getNextQuest` 保留为无 calibration 的薄封装
+- 测试：`src/application/useCases/getNextQuest.test.ts`
 
 ## 下一步
 
-**Step 3：** 扩展 `getNextQuest` → `selectNextQuest`（消费 calibration，保持确定性回退）。
+**Step 4：** Difficulty Path（beginner / intermediate / advanced 与 difficulty 偏好）。
 
 ---
 
 # 开发流程
 
 ```text
-设计 → 实现 → 测试 → 用户验证 → Commit
-  → 更新 PROJECT_PROGRESS.md
-  → 更新本 Sprint 文档
-  → 更新 GitHub Issue
-  → 进入下一 Step
+设计 → 实现 → 测试 → 用户验证 → Commit → 更新文档 → 下一 Step
 ```

@@ -2,39 +2,21 @@
 
 > Sprint: Sprint 3  
 > Status: In Progress  
-> Current Step: Step 3 — Quest Selection  
+> Current Step: Step 4 — Difficulty Path  
 > MVP World: JavaScript Async World  
 > AI Dependency: None
 
 ---
 
-## 1. Sprint Goal
-
-让不同玩家在同一 Async World 中开始走**不同路径**。
-
-```text
-Player Model (Calibration + Mastery + Progress)
-        ↓
-Quest Selection
-        ↓
-Challenge
-        ↓
-Evaluation → Evidence → Mastery
-        ↓
-Spaced Review 信号（最小）
-```
-
----
-
-## 2. Step 状态
+## Step 状态
 
 | Step | 内容 | 状态 |
 |---|---|---|
 | 0 | Planning / Gap Inventory | ✅ |
 | 1 | Adaptive 边界 + 数据模型扩展设计 | ✅ |
 | 2 | Calibration Content + Persist + 接入 | ✅ |
-| 3 | Quest Selection（扩展 getNextQuest） | 🟡 当前 |
-| 4 | Difficulty Path | ⬜ |
+| 3 | Quest Selection（扩展 getNextQuest） | ✅ |
+| 4 | Difficulty Path | 🟡 当前 |
 | 5 | Spaced Review 最小模型 | ⬜ |
 | 6 | Integration + Tests | ⬜ |
 
@@ -42,67 +24,53 @@ Spaced Review 信号（最小）
 
 ## Step 1 — 设计结论（已锁定）
 
-### GameSave.adaptive
-
-```ts
-adaptive?: {
-  calibration: CalibrationResult | null
-  review: ReviewStateMap  // KnowledgeNode 粒度；Step 5 填规则
-}
-```
-
-- 不升 `version`
-- 缺省：`{ calibration: null, review: {} }`
-
-### Review 粒度
-
-**KnowledgeNode**；间隔 1 / 3 / 7 / 14 / 30 天。
-
-### Selection 优先级（Step 3+）
-
-1. Review due  
-2. `calibration.recommendedQuestId`（仍可开）  
-3. Difficulty path（按 level）  
-4. 薄弱 Skill  
-5. 回退：原 getNextQuest 行为  
-
-只在 prereq 满足的候选中选择；不直接改 Unlock 图。
-
-### 明确不改
-
-Evaluation / XP 公式 / Unlock 核心 / Boss 状态机 / AI
+- `GameSave.adaptive`: `{ calibration, review }`，不升 version
+- Review 粒度：KnowledgeNode；间隔 1/3/7/14/30
+- Selection 优先级：Review due → recommendedQuestId → Difficulty path → 薄弱 Skill → 回退
 
 ---
 
-## Step 2 — Calibration 接入（已完成）
+## Step 2 — Calibration（已完成）
+
+- Content：`asyncWorldCalibration`（promise-basics → event-loop → async-await-final）
+- `finishCalibration` 仅写 `adaptive.calibration`
+- 不产生 Evidence / XP / Progress 变更
+
+---
+
+## Step 3 — Quest Selection（已完成）
 
 实现：
 
 ```text
-src/content/calibration/asyncWorld.ts
-src/content/calibration/asyncWorld.test.ts
-src/application/useCases/completeCalibration.ts
-src/application/useCases/completeCalibration.test.ts
-src/infrastructure/persistence/gameRepository.ts  // adaptive + normalize
-src/application/gameStore.ts                      // finishCalibration
+src/application/useCases/getNextQuest.ts
+src/application/useCases/getNextQuest.test.ts
 ```
 
-行为：
+规则：
 
-- Definition questIds：`promise-basics` → `event-loop` → `async-await-final`
-- `finishCalibration(answers)` → 写入 `adaptive.calibration` 并 persist
-- **不**产生 SkillEvidence，**不**改 XP / QuestProgress
-- 旧存档无 adaptive 时自动默认
+1. 候选 = 非 cleared、非 locked、prerequisiteQuestIds 均已 cleared
+2. 若 `calibration.recommendedQuestId` 落在候选中 → 返回该 Quest
+3. 否则返回候选中按 `quests` 数组顺序的第一项
+4. `getNextQuest(quests, progress)` ≡ `selectNextQuest` 无 calibration
 
-验证：本地 `npm test` 在集成提交后应全部通过（含恢复的 gameStore 回归）。
+未做（留给后续 Step）：
+
+- Review due 优先
+- Difficulty path 排序/过滤
+- 薄弱 Skill 优先
 
 ---
 
-## Step 3 — Quest Selection（下一步）
+## Step 4 — Difficulty Path（下一步）
 
-- 扩展 `getNextQuest` 为可消费 `calibration` 的 `selectNextQuest`
-- 保持纯函数与确定性
-- 兼容旧调用（无 calibration 时行为不变）
+| Level | 偏好 |
+|---|---|
+| beginner | 优先 difficulty ≤ 2 |
+| intermediate | 优先 2–4 |
+| advanced | 可跳过 difficulty ≤ 2（仍有候选时）；避免死锁则回退 |
+
+接入点：在 `selectNextQuest` 优先级 3 实现，仍只在候选集内选择。
 
 ---
 
