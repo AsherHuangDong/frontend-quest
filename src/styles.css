@@ -36,9 +36,19 @@ h3 { margin: 0 0 12px; font-size: 16px; color: #e4e4e7; }
 
 .banner { border-radius: 16px; padding: 16px 18px; border: 1px solid #3f3f46; background: #18181b; display: grid; gap: 8px; }
 .banner.onboarding { border-color: #3f3f46; }
+.banner.onboarding.emphasize { border-color: #52525b; background: rgba(39, 39, 42, 0.9); }
 .banner.review { border-color: #ca8a04; background: rgba(202, 138, 4, 0.08); }
 .banner.hint { border-color: #52525b; color: #d4d4d8; margin-top: 16px; }
 .banner p, .banner span { margin: 0; color: #a1a1aa; font-size: 14px; line-height: 1.5; }
+
+.steps { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
+.steps li { display: flex; gap: 12px; align-items: flex-start; }
+.step-n {
+  flex: 0 0 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+  background: #27272a; color: #fbbf24; font-weight: 700; font-size: 13px;
+}
+.steps strong { display: block; color: #f4f4f5; font-size: 14px; margin-bottom: 2px; }
+.steps p { margin: 0; color: #a1a1aa; font-size: 13px; line-height: 1.45; }
 
 .hub-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .meta-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid #3f3f46; background: #18181b; color: #d4d4d8; font-size: 13px; }

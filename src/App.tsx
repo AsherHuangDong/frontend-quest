@@ -10,6 +10,7 @@ import { selectNextQuest } from './application/useCases/getNextQuest';
 import { evaluateChallenge } from './domain/quest/evaluator';
 import { buildResultCopy } from './presentation/experience/resultCopy';
 import { skillLabel } from './presentation/experience/skillLabels';
+import { UI } from './presentation/experience/uiCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import './styles.css';
 
@@ -57,9 +58,9 @@ function ChallengeContent({
 }
 
 function statusLabel(status: string) {
-  if (status === 'cleared') return '已通关';
-  if (status === 'available') return '可挑战';
-  return '未解锁';
+  if (status === 'cleared') return UI.statusCleared;
+  if (status === 'available') return UI.statusAvailable;
+  return UI.statusLocked;
 }
 
 export default function App() {
@@ -115,9 +116,16 @@ export default function App() {
         })
       : null;
 
+  const isNewPlayer = clearedCount === 0 && !adaptive.calibration;
+
   function openQuest(questId: string) {
     startQuest(questId);
     setScreen('quest');
+  }
+
+  function goHub() {
+    exitQuest();
+    setScreen('hub');
   }
 
   function startCalibration() {
@@ -163,8 +171,8 @@ export default function App() {
       <main className="app-shell">
         <header className="topbar">
           <div>
-            <span className="eyebrow">FRONTEND QUEST · MVP</span>
-            <h1>Async World</h1>
+            <span className="eyebrow">{UI.productEyebrow}</span>
+            <h1>{UI.worldTitle}</h1>
           </div>
           <div className="player-stats">
             <div className="player-card">
@@ -181,11 +189,19 @@ export default function App() {
 
         {screen === 'hub' && (
           <section className="chapter-card hub">
-            <div className="banner onboarding">
-              <h2>把前端异步知识练成可闯关的能力</h2>
-              <p>
-                先做一次快速定级（可选），再按推荐路线挑战。答错不会扣能力——用提示定位盲区，再试一次就好。
-              </p>
+            <div className={`banner onboarding ${isNewPlayer ? 'emphasize' : ''}`}>
+              <h2>{UI.onboardingTitle}</h2>
+              <ol className="steps">
+                {UI.onboardingSteps.map((step) => (
+                  <li key={step.n}>
+                    <span className="step-n">{step.n}</span>
+                    <div>
+                      <strong>{step.title}</strong>
+                      <p>{step.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
 
             <div className="progress-panel">
@@ -225,7 +241,7 @@ export default function App() {
                 <div className="progress-head">
                   <strong>任务完成度</strong>
                   <span>
-                    {clearedCount} / {questTotal} 通关 · {availableCount} 可挑战
+                    {clearedCount} / {questTotal} 通关 · {availableCount} {UI.statusAvailable}
                   </span>
                 </div>
                 <div
@@ -239,18 +255,18 @@ export default function App() {
                 </div>
                 <div className="progress-foot">
                   <span>{clearPercent}% 已通关</span>
-                  <span>Async World</span>
+                  <span>{UI.worldTitle}</span>
                 </div>
               </div>
             </div>
 
             {dueNodes.length > 0 && (
               <div className="banner review">
-                <strong>有 {dueNodes.length} 个知识点适合复习了</strong>
-                <span>不是进度倒退，只是记忆需要再加固：{dueNodes.join(', ')}</span>
+                <strong>{UI.reviewBannerTitle(dueNodes.length)}</strong>
+                <span>{UI.reviewBannerBody(dueNodes.join(', '))}</span>
                 {nextQuest && (
                   <button className="submit-button" onClick={() => openQuest(nextQuest.id)}>
-                    开始复习 · {nextQuest.title}
+                    {UI.ctaReview} · {nextQuest.title}
                   </button>
                 )}
               </div>
@@ -258,24 +274,31 @@ export default function App() {
 
             <div className="hub-actions">
               {!adaptive.calibration && (
-                <button className="submit-button primary" onClick={startCalibration}>
-                  开始定级（3 题）
-                </button>
+                <>
+                  <button className="submit-button primary" onClick={startCalibration}>
+                    {UI.ctaCalibrate}
+                  </button>
+                  {nextQuest && (
+                    <button className="hint-button" onClick={() => openQuest(nextQuest.id)}>
+                      {UI.ctaSkipCalibrate}
+                    </button>
+                  )}
+                </>
               )}
               {adaptive.calibration && (
                 <div className="meta-chip">
                   定级：{adaptive.calibration.level}
                   {adaptive.calibration.recommendedQuestId
-                    ? ` · 推荐起点 ${adaptive.calibration.recommendedQuestId}`
-                    : ' · 已全部通过'}
+                    ? ` · 推荐 ${adaptive.calibration.recommendedQuestId}`
+                    : ' · 定级题已全部通过'}
                 </div>
               )}
               {nextQuest ? (
                 <button className="submit-button primary" onClick={() => openQuest(nextQuest.id)}>
-                  下一题 · {nextQuest.title}
+                  {UI.ctaNextQuest} · {nextQuest.title}
                 </button>
               ) : (
-                <div className="meta-chip">当前没有可推荐的下一题（可能已全部通关）</div>
+                <div className="meta-chip">{UI.noNextQuest}</div>
               )}
             </div>
 
@@ -320,7 +343,11 @@ export default function App() {
                       disabled={status === 'locked'}
                       onClick={() => openQuest(quest.id)}
                     >
-                      {status === 'cleared' ? '复习' : status === 'available' ? '挑战' : '锁定'}
+                      {status === 'cleared'
+                        ? UI.ctaReplay
+                        : status === 'available'
+                          ? UI.ctaChallenge
+                          : UI.ctaLocked}
                     </button>
                   </div>
                 );
@@ -334,7 +361,7 @@ export default function App() {
             {!calibDone && calibrationQuests[calibIndex] && (
               <>
                 <div className="meta-chip">
-                  定级 {calibIndex + 1} / {calibrationQuests.length} · 用来找到合适起点，不是考试
+                  {UI.calibrateChip(calibIndex + 1, calibrationQuests.length)}
                 </div>
                 <h2>{calibrationQuests[calibIndex]!.title}</h2>
                 <ChallengeContent
@@ -348,10 +375,12 @@ export default function App() {
                     disabled={!calibSelected}
                     onClick={submitCalibrationStep}
                   >
-                    {calibIndex + 1 >= calibrationQuests.length ? '完成定级' : '下一题'}
+                    {calibIndex + 1 >= calibrationQuests.length
+                      ? UI.ctaFinishCalibrate
+                      : UI.ctaCalibrateNext}
                   </button>
                   <button className="hint-button" onClick={() => setScreen('hub')}>
-                    跳过定级
+                    {UI.ctaSkipCalibrate}
                   </button>
                 </div>
               </>
@@ -359,13 +388,13 @@ export default function App() {
             {calibDone && adaptive.calibration && (
               <div className="result success">
                 <div className="result-icon">🧭</div>
-                <h2>定级完成：{adaptive.calibration.level}</h2>
+                <h2>{UI.calibrateDoneTitle(adaptive.calibration.level)}</h2>
                 <p className="result-lead">
                   {adaptive.calibration.recommendedQuestId
-                    ? `我们会优先从「${adaptive.calibration.recommendedQuestId}」附近给你推荐挑战。`
-                    : '定级题都过了，你可以按自己的节奏挑任务。'}
+                    ? `推荐从「${adaptive.calibration.recommendedQuestId}」附近开始。`
+                    : '定级题都过了，可以按自己的节奏选任务。'}
                 </p>
-                <p className="result-soft">定级不会发放 XP，也不会改写关卡解锁——只影响推荐路径。</p>
+                <p className="result-soft">{UI.calibrateNoXpNote}</p>
                 <div className="action-bar">
                   <button
                     className="submit-button primary"
@@ -374,10 +403,10 @@ export default function App() {
                       if (nextQuest) openQuest(nextQuest.id);
                     }}
                   >
-                    开始推荐挑战
+                    {UI.ctaStartRecommended}
                   </button>
                   <button className="hint-button" onClick={() => setScreen('hub')}>
-                    返回大厅
+                    {UI.ctaBackHub}
                   </button>
                 </div>
               </div>
@@ -413,16 +442,10 @@ export default function App() {
                     提交答案
                   </button>
                   <button className="hint-button" onClick={useHint}>
-                    需要提示
+                    {UI.ctaHint}
                   </button>
-                  <button
-                    className="hint-button"
-                    onClick={() => {
-                      exitQuest();
-                      setScreen('hub');
-                    }}
-                  >
-                    返回
+                  <button className="hint-button" onClick={goHub}>
+                    {UI.ctaBackHub}
                   </button>
                 </div>
               </>
@@ -444,7 +467,7 @@ export default function App() {
                 <div className="action-bar">
                   {!runtime.result.passed && (
                     <button className="submit-button primary" onClick={retryQuest}>
-                      再试一次
+                      {UI.ctaRetry}
                     </button>
                   )}
                   {runtime.result.passed && nextQuest && nextQuest.id !== activeQuest.id && (
@@ -452,28 +475,16 @@ export default function App() {
                       className="submit-button primary"
                       onClick={() => openQuest(nextQuest.id)}
                     >
-                      下一题 · {nextQuest.title}
+                      {UI.ctaNextQuest} · {nextQuest.title}
                     </button>
                   )}
                   {runtime.result.passed && (!nextQuest || nextQuest.id === activeQuest.id) && (
-                    <button
-                      className="submit-button primary"
-                      onClick={() => {
-                        exitQuest();
-                        setScreen('hub');
-                      }}
-                    >
-                      返回大厅看看进度
+                    <button className="submit-button primary" onClick={goHub}>
+                      {UI.allClearHub}
                     </button>
                   )}
-                  <button
-                    className="hint-button"
-                    onClick={() => {
-                      exitQuest();
-                      setScreen('hub');
-                    }}
-                  >
-                    返回大厅
+                  <button className="hint-button" onClick={goHub}>
+                    {UI.ctaBackHub}
                   </button>
                 </div>
               </div>
