@@ -143,7 +143,7 @@ describe('gameStore learning integration', () => {
     expect(state.player.xp).toBe(50);
     expect(state.skillEvidence).toEqual([]);
     expect(state.skillMastery).toEqual({});
-    expect(state.adaptive).toEqual({ calibration: null, review: {} });
+    expect(state.adaptive).toEqual({ calibration: null, review: {}, lastActiveAt: null });
   });
 });
 
@@ -339,7 +339,6 @@ describe('gameStore adaptive review integration', () => {
       review: state.adaptive.review,
     });
 
-    // Without due review yet, recommendation or difficulty path applies.
     expect(next).not.toBeNull();
     expect(state.adaptive.calibration?.recommendedQuestId).toBe('async-await-final');
   });
