@@ -63,6 +63,16 @@ function statusLabel(status: string) {
   return UI.statusLocked;
 }
 
+function lockReason(
+  quest: { prerequisiteQuestIds: string[] },
+  progress: Record<string, { status?: string } | undefined>,
+): string {
+  const missing = quest.prerequisiteQuestIds.filter((id) => progress[id]?.status !== 'cleared');
+  if (missing.length === 0) return '暂未解锁';
+  const titles = missing.map((id) => getQuest(id)?.title ?? id);
+  return `需先完成：${titles.join('、')}`;
+}
+
 export default function App() {
   const player = useGameStore((state) => state.player);
   const progress = useGameStore((state) => state.progress);
@@ -344,6 +354,9 @@ export default function App() {
                           ? ` · ${quest.knowledgeNodeIds.join('/')}`
                           : ''}
                       </p>
+                      {status === 'locked' && (
+                        <p className="lock-hint">{lockReason(quest, progress)}</p>
+                      )}
                     </div>
                     <button
                       disabled={status === 'locked'}
