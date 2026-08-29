@@ -1,38 +1,59 @@
 import type { CalibrationLevel, CalibrationResult } from '../../domain/calibration/types';
 import type { ProgressMap } from '../../domain/progress/types';
 import type { Quest } from '../../domain/quest/types';
+import type { ReviewStateMap } from '../../domain/review/types';
+import { listDueKnowledgeNodeIds } from '../../domain/review/review';
 import type { SkillMasteryMap } from '../../domain/skill/types';
 
 export interface SelectNextQuestInput {
   quests: Quest[];
   progress: ProgressMap;
   calibration?: CalibrationResult | null;
-  /** Reserved for weak-skill priority; unused when empty. */
   mastery?: SkillMasteryMap;
+  review?: ReviewStateMap;
+  now?: string;
 }
 
-function isCandidate(quest: Quest, progress: ProgressMap): boolean {
-  const current = progress[quest.id];
-
-  if (!current || current.status === 'cleared') {
-    return false;
-  }
-
-  if (current.status === 'locked') {
-    return false;
-  }
-
+function prereqsCleared(quest: Quest, progress: ProgressMap): boolean {
   return quest.prerequisiteQuestIds.every((id) => progress[id]?.status === 'cleared');
 }
 
-function listCandidates(quests: Quest[], progress: ProgressMap): Quest[] {
-  return quests.filter((quest) => isCandidate(quest, progress));
+function isLearningCandidate(quest: Quest, progress: ProgressMap): boolean {
+  const current = progress[quest.id];
+
+  if (!current || current.status === 'cleared' || current.status === 'locked') {
+    return false;
+  }
+
+  return prereqsCleared(quest, progress);
 }
 
-/**
- * Prefer a difficulty band by calibration level.
- * Always falls back to the full candidate list when the preferred band is empty (no deadlock).
- */
+function listLearningCandidates(quests: Quest[], progress: ProgressMap): Quest[] {
+  return quests.filter((quest) => isLearningCandidate(quest, progress));
+}
+
+/** Cleared or available quests that cover at least one due knowledge node. */
+function listReviewCandidates(
+  quests: Quest[],
+  progress: ProgressMap,
+  dueNodeIds: Set<string>,
+): Quest[] {
+  if (dueNodeIds.size === 0) {
+    return [];
+  }
+
+  return quests.filter((quest) => {
+    const current = progress[quest.id];
+    if (!current || current.status === 'locked') {
+      return false;
+    }
+    if (!prereqsCleared(quest, progress) && current.status !== 'cleared') {
+      return false;
+    }
+    return quest.knowledgeNodeIds.some((id) => dueNodeIds.has(id));
+  });
+}
+
 export function preferByDifficultyPath(
   candidates: Quest[],
   level: CalibrationLevel | undefined | null,
@@ -53,7 +74,6 @@ export function preferByDifficultyPath(
       );
       break;
     case 'advanced':
-      // Skip low-difficulty filler when harder work is available.
       preferred = candidates.filter((quest) => quest.difficulty >= 3);
       break;
     default:
@@ -64,19 +84,28 @@ export function preferByDifficultyPath(
 }
 
 /**
- * Deterministic next-quest selection for Adaptive Core.
- *
  * Priority:
- * 1. calibration.recommendedQuestId when still a candidate
- * 2. difficulty path preference by calibration.level
- * 3. first candidate in quests array order
- *
- * Review due / weak skill are reserved for later Steps.
+ * 1. Quest covering a due knowledge-node review (may be cleared replay)
+ * 2. calibration.recommendedQuestId
+ * 3. difficulty path
+ * 4. first learning candidate
  */
 export function selectNextQuest(input: SelectNextQuestInput): Quest | null {
-  const { quests, progress, calibration = null } = input;
-  const candidates = listCandidates(quests, progress);
+  const {
+    quests,
+    progress,
+    calibration = null,
+    review = {},
+    now = new Date().toISOString(),
+  } = input;
 
+  const dueIds = new Set(listDueKnowledgeNodeIds(review, now));
+  const reviewCandidates = listReviewCandidates(quests, progress, dueIds);
+  if (reviewCandidates.length > 0) {
+    return reviewCandidates[0] ?? null;
+  }
+
+  const candidates = listLearningCandidates(quests, progress);
   if (candidates.length === 0) {
     return null;
   }
@@ -93,9 +122,6 @@ export function selectNextQuest(input: SelectNextQuestInput): Quest | null {
   return ranked[0] ?? null;
 }
 
-/**
- * Legacy helper: first selectable quest without calibration influence.
- */
 export function getNextQuest(quests: Quest[], progress: ProgressMap): Quest | null {
-  return selectNextQuest({ quests, progress, calibration: null });
+  return selectNextQuest({ quests, progress, calibration: null, review: {} });
 }

@@ -3,17 +3,9 @@ import type { ProgressMap } from '../../domain/progress/types';
 import type { BossProgress } from '../../domain/boss/types';
 import type { SkillEvidence, SkillMasteryMap } from '../../domain/skill/types';
 import type { CalibrationResult } from '../../domain/calibration/types';
+import type { ReviewStateMap } from '../../domain/review/types';
 
-/** Knowledge-node spaced review state (shape reserved for Step 5). */
-export type ReviewStateMap = Record<
-  string,
-  {
-    knowledgeNodeId: string;
-    intervalIndex: number;
-    nextDueAt: string;
-    lastReviewedAt: string | null;
-  }
->;
+export type { ReviewStateMap };
 
 export interface AdaptiveSaveState {
   calibration: CalibrationResult | null;
