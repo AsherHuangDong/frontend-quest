@@ -1,7 +1,7 @@
 # Frontend Quest — Product & Architecture Specification
 
-> Version: v0.1  
-> Status: MVP Planning / Implementation  
+> Version: v0.2  
+> Status: MVP Implementation / Experience Polish  
 > Repository: https://github.com/AsherHuangDong/frontend-quest  
 > Current MVP: Async World  
 > AI Dependency: None  
@@ -439,51 +439,45 @@ Skill Assessment
 
 ## 25. Sprint 计划
 
-### Sprint 1 — Learning Core
+### Sprint 1 — Learning Core ✅
 
-范围：Knowledge、Quest、Skill、Mastery、Player Goal。
+范围：Knowledge、Quest、Skill、Mastery、Calibration（Domain）。
 
 目标：系统知道玩家会什么。
 
-### Sprint 2 — Experience Core
+### Sprint 2 — Experience Core ✅
 
 范围：Quest Flow、Failure Recovery、XP、Level、Boss、Progress。
 
 目标：系统真的像一个游戏。
 
-### Sprint 3 — Adaptive Core
+### Sprint 3 — Adaptive Core ✅
 
 范围：Calibration、Difficulty、Quest Selection、Spaced Review。
 
 目标：不同玩家开始拥有不同路径。
 
-### Sprint 4 — Experience Polish
+### Sprint 4 — Experience Polish 🟡
 
 范围：Onboarding、Feedback、Animation、Interaction、Progress Visualization、Copywriting。
 
 目标：让玩家愿意继续。
 
+执行计划：`docs/SPRINT4_EXPERIENCE_POLISH.md`
+
 ---
 
 ## 26. 当前开发阶段
 
-项目已经从早期 Vertical Slice / 游戏基础闭环进入产品化 MVP 阶段。
+Sprint 1–3 与 MVP P0 体验层已完成，用户可本地完整体验：
 
-当前仓库已有：
-
-- React / TypeScript 基础项目
-- Quest / Chapter 基础流程
-- Quest Evaluation / Pass / Fail
-- XP / Level / Unlock / Progress
-- Mastery 基础能力
-- Mock API / MSW
-- Request 基础层
-- 本地持久化基础
-- 基础游戏规则与 Domain / Store / UI 分层
+```text
+定级（可选）→ 下一题 → 答题 → 反馈 → 存档 → 复习 due
+```
 
 ### 当前明确目标
 
-> **进入 Async World MVP，优先完成 Sprint 1 Learning Core。**
+> **Sprint 4 — Experience Polish：打磨反馈、进度感知与文案，服务 H1/H2/H3 验证。**
 
 ### 当前明确不做
 
@@ -522,11 +516,11 @@ Skill Assessment
 
 ## 28. 给后续开发对话的上下文
 
-新对话开始时，先阅读本文件，不要重新定义项目目标。
+新对话开始时，先阅读本文件与 `docs/PROJECT_PROGRESS.md`，不要重新定义项目目标。
 
 推荐提示词：
 
-> 你现在负责继续开发 Frontend Quest。请先阅读 `docs/PROJECT_SPEC.md`，不要重新设计项目目标。当前目标是完成 Async World MVP。当前阶段不接入 AI，以确定性学习引擎为核心，同时保持 AI 可扩展性。所有新增功能必须优先服务 MVP 验证，不要提前实现长期愿景。请先检查当前仓库实现与本文档的差距，然后给出最小下一步并直接实施。
+> 你现在负责继续开发 Frontend Quest。请先阅读 `docs/PROJECT_SPEC.md` 与 `docs/PROJECT_PROGRESS.md`。当前目标是 Async World MVP 的 Experience Polish（Sprint 4）。不接入 AI。所有新增功能必须优先服务 H1/H2/H3 验证，不要提前实现长期愿景。请先检查差距，然后给出最小下一步并实施。
 
 ---
 
@@ -566,15 +560,14 @@ Frontend Quest MVP 不是“功能很多”才成功。
 
 ## 30. 当前下一步
 
-**Sprint 1 / Learning Core：**
+**Sprint 4 / Experience Polish：**
 
-1. 盘点当前 Domain / Content / Store / Runtime 实现。
-2. 定义 Async World 的 Knowledge Model。
-3. 定义 Quest Content Schema。
-4. 定义 Skill / Mastery Model。
-5. 定义 Calibration 数据结构和确定性规则。
-6. 建立 Async World 最小内容集。
-7. 接入现有 Quest Flow。
-8. 为后续 Adaptive Engine 保留接口边界。
-9. 增加单元测试和核心流程测试。
-10. 完成后再进入 Sprint 2，而不是继续扩展知识范围。
+1. 基于 P0 自测整理体验痛点清单。
+2. 打磨 Feedback 与失败文案。
+3. 增强 Progress / Mastery 可视化。
+4. 统一 Onboarding 与关键文案。
+5. 强化 Review / Return（无罪回归）感知。
+6. 可选轻量动效与交互一致性。
+7. 准备并执行小范围体验测试（H1）。
+
+详见 `docs/SPRINT4_EXPERIENCE_POLISH.md`。
