@@ -12,14 +12,12 @@
 
 - Step 0：锁定交互 A 排序 + 训练室暂藏 + 第 1 章作为样板关
 - Step 1：Adventure domain types + chapter1 content + deterministic evaluate
-  - `src/domain/adventure/types.ts`
-  - `src/domain/adventure/evaluate.ts`
-  - `src/content/adventures/chapter1.ts`
-  - `src/content/adventures/chapter1.test.ts`
+- Step 2：Lab UI（状态面板 + 卡片排序 + Run + intro/fail/success）
+  - `src/presentation/components/adventure/AdventureLab.tsx`
+  - Hub 临时入口（待 Step 3 替换为正式城相）
 
 ## 下一步
 
-1. Step 2 — Lab UI（状态面板 + 卡片排序 + Run）
-2. Step 3 — Hub 城相入口
-3. Step 4 — 进度/证据接线
-4. Step 5 — 测试与验收
+1. Step 3 — Hub 城相入口（去题库化）
+2. Step 4 — 进度/证据接线
+3. Step 5 — 测试与验收
