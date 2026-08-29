@@ -6,7 +6,7 @@ import { quests } from '../../content/quests';
 import { getNextQuest, selectNextQuest } from './getNextQuest';
 
 function buildProgress(
-  overrides: Partial<Record<string, ProgressMap[string]>> = {},
+  overrides: Partial<ProgressMap> = {},
 ): ProgressMap {
   const base: ProgressMap = Object.fromEntries(
     quests.map((quest) => [
@@ -22,7 +22,7 @@ function buildProgress(
     ]),
   );
 
-  return { ...base, ...overrides };
+  return { ...base, ...overrides } as ProgressMap;
 }
 
 function clear(questId: string): ProgressMap[string] {
@@ -66,7 +66,7 @@ describe('getNextQuest', () => {
 
   it('returns null when every quest is cleared', () => {
     const progress = buildProgress(
-      Object.fromEntries(quests.map((quest) => [quest.id, clear(quest.id)])),
+      Object.fromEntries(quests.map((quest) => [quest.id, clear(quest.id)])) as ProgressMap,
     );
     expect(getNextQuest(quests, progress)).toBeNull();
   });
@@ -82,13 +82,9 @@ describe('selectNextQuest', () => {
     const progress = buildProgress({
       'promise-basics': clear('promise-basics'),
       'promise-state': available('promise-state'),
-      'promise-chain': available('promise-chain'),
+      'promise-chain': clear('promise-chain'),
       'event-loop': available('event-loop'),
     });
-
-    // event-loop requires promise-chain cleared — make chain cleared so event-loop can unlock
-    progress['promise-chain'] = clear('promise-chain');
-    progress['event-loop'] = available('event-loop');
 
     const calibration: CalibrationResult = {
       calibrationId: 'async-world-calibration',
