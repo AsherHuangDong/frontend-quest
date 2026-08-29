@@ -193,7 +193,7 @@ export default function App() {
 
         {screen === 'hub' && (
           <section className="chapter-card hub">
-            <div className={`banner onboarding ${isNewPlayer ? 'emphasize' : ''`}>
+            <div className={`banner onboarding ${isNewPlayer ? 'emphasize' : ''}`}>
               <h2>{UI.onboardingTitle}</h2>
               <ol className="steps">
                 {UI.onboardingSteps.map((step) => (
