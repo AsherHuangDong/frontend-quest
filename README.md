@@ -11,15 +11,15 @@
 ## 当前项目状态
 
 **Sprint 3 — Adaptive Core**  
-**当前 Step：Step 5 — Spaced Review 最小模型**
-
-阅读顺序：`docs/PROJECT_SPEC.md` → `docs/PROJECT_PROGRESS.md` → `docs/SPRINT3_ADAPTIVE_CORE.md`
+**当前 Step：Step 6 — Integration + Tests**
 
 | Sprint | 状态 |
 |---|---|
 | 1 Learning Core | ✅ |
 | 2 Experience Core | ✅ |
-| 3 Adaptive Core | 🟡 Step 5 |
+| 3 Adaptive Core | 🟡 Step 6 |
+
+文档：`docs/PROJECT_SPEC.md` → `docs/PROJECT_PROGRESS.md` → `docs/SPRINT3_ADAPTIVE_CORE.md`
 
 ## 开发规则
 

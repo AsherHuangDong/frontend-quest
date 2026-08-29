@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { CalibrationResult } from '../../domain/calibration/types';
 import type { ProgressMap } from '../../domain/progress/types';
 import type { Quest } from '../../domain/quest/types';
+import type { ReviewStateMap } from '../../domain/review/types';
 import { quests } from '../../content/quests';
 import {
   getNextQuest,
@@ -135,7 +136,6 @@ describe('selectNextQuest', () => {
       completedAt: '2026-08-30T00:00:00.000Z',
     };
 
-    // intermediate prefers difficulty 2-4; promise-state is 1, promise-chain is 2
     expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('promise-chain');
   });
 
@@ -154,7 +154,6 @@ describe('selectNextQuest', () => {
       completedAt: '2026-08-30T00:00:00.000Z',
     };
 
-    // both difficulty <= 2; array order keeps promise-state first
     expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('promise-state');
   });
 
@@ -162,8 +161,8 @@ describe('selectNextQuest', () => {
     const progress = buildProgress({
       'promise-basics': clear('promise-basics'),
       'promise-chain': clear('promise-chain'),
-      'promise-state': available('promise-state'), // difficulty 1
-      'async-await-final': available('async-await-final'), // difficulty 3
+      'promise-state': available('promise-state'),
+      'async-await-final': available('async-await-final'),
     });
 
     const calibration: CalibrationResult = {
@@ -187,7 +186,6 @@ describe('selectNextQuest', () => {
       completedAt: '2026-08-30T00:00:00.000Z',
     };
 
-    // only promise-basics is available (difficulty 1); advanced falls back to it
     expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('promise-basics');
   });
 
@@ -199,5 +197,31 @@ describe('selectNextQuest', () => {
     ] as Quest[];
 
     expect(selectNextQuest({ quests: ordered, progress })?.id).toBe('promise-basics');
+  });
+
+  it('prefers a cleared quest that covers a due knowledge node', () => {
+    const progress = buildProgress({
+      'promise-basics': clear('promise-basics'),
+      'promise-state': available('promise-state'),
+    });
+
+    const review: ReviewStateMap = {
+      promise: {
+        knowledgeNodeId: 'promise',
+        intervalIndex: 0,
+        nextDueAt: '2026-08-01T00:00:00.000Z',
+        lastReviewedAt: '2026-07-31T00:00:00.000Z',
+      },
+    };
+
+    const next = selectNextQuest({
+      quests,
+      progress,
+      review,
+      now: '2026-08-30T00:00:00.000Z',
+    });
+
+    // promise-basics covers knowledge node "promise" and is cleared → review replay
+    expect(next?.id).toBe('promise-basics');
   });
 });

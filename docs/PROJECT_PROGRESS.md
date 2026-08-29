@@ -4,7 +4,7 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 3 — Adaptive Core
-- **当前 Step:** Step 5 — Spaced Review 最小模型
+- **当前 Step:** Step 6 — Integration + Tests
 - **AI:** 暂不接入
 - **Sprint 1 / 2:** 已完成
 - **最后更新:** 2026-08-30
@@ -20,23 +20,21 @@
 | 0 | Planning / Gap Inventory | ✅ |
 | 1 | Adaptive 边界 + 数据模型扩展设计 | ✅ |
 | 2 | Calibration Content + Persist + 接入 | ✅ |
-| 3 | Quest Selection（扩展 getNextQuest） | ✅ |
+| 3 | Quest Selection | ✅ |
 | 4 | Difficulty Path | ✅ |
-| 5 | Spaced Review 最小模型 | 🟡 当前 |
-| 6 | Integration + Tests | ⬜ |
+| 5 | Spaced Review 最小模型 | ✅ |
+| 6 | Integration + Tests | 🟡 当前 |
 
-## Step 4 完成摘要
+## Step 5 完成摘要
 
-- `preferByDifficultyPath(candidates, level)`
-  - beginner：difficulty ≤ 2
-  - intermediate：2–4
-  - advanced：≥ 3（否则回退全候选，避免死锁）
-- `selectNextQuest`：recommended → difficulty path → 首个候选
-- 测试覆盖 path 与 advanced 跳过低难度
+- Domain：`src/domain/review/*`（间隔 1/3/7/14/30，isDue / scheduleNext / applyQuestOutcomeToReview）
+- Save：`adaptive.review` 使用 Domain `ReviewStateMap`
+- Selection：due KnowledgeNode 覆盖的 Quest 优先（含 cleared 复习）
+- Store：`submitAnswer` 更新 review；`startQuest` 允许 cleared 复习
 
 ## 下一步
 
-**Step 5：** Spaced Review 最小模型（KnowledgeNode 粒度，间隔 1/3/7/14/30）。
+**Step 6：** Integration + Tests（端到端回归、文档收尾、可选 GitHub Issue）。
 
 ---
 

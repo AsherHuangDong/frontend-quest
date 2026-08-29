@@ -1,50 +1,51 @@
 # Sprint 3 — Adaptive Core
 
 > Status: In Progress  
-> Current Step: Step 5 — Spaced Review 最小模型  
+> Current Step: Step 6 — Integration + Tests  
 > AI Dependency: None
 
 ## Step 状态
 
 | Step | 内容 | 状态 |
 |---|---|---|
-| 0–1 | Planning + 数据模型设计 | ✅ |
-| 2 | Calibration Content + Persist | ✅ |
-| 3 | Quest Selection | ✅ |
-| 4 | Difficulty Path | ✅ |
-| 5 | Spaced Review 最小模型 | 🟡 当前 |
-| 6 | Integration + Tests | ⬜ |
+| 0–4 | Planning → Difficulty Path | ✅ |
+| 5 | Spaced Review 最小模型 | ✅ |
+| 6 | Integration + Tests | 🟡 当前 |
 
 ---
 
-## Step 4 — Difficulty Path（已完成）
+## Step 5 — Spaced Review（已完成）
 
 ```text
-src/application/useCases/getNextQuest.ts  // preferByDifficultyPath
+src/domain/review/types.ts
+src/domain/review/review.ts
+src/domain/review/review.test.ts
 ```
 
-| Level | 偏好 |
-|---|---|
-| beginner | difficulty ≤ 2 |
-| intermediate | 2 ≤ difficulty ≤ 4 |
-| advanced | difficulty ≥ 3；无匹配则回退全候选 |
-
-Selection 顺序：
-
-1. `recommendedQuestId`（候选内）
-2. difficulty path 过滤后的第一项
-3. 全候选第一项
+- 粒度：KnowledgeNode
+- 间隔：1 → 3 → 7 → 14 → 30 天
+- 首次 pass：`scheduleInitial`
+- due 后 pass：`scheduleNext`；fail：`scheduleAfterFailure`
+- `selectNextQuest` 优先级 1：覆盖 due 节点的 Quest（可 cleared 复习）
+- `gameStore.submitAnswer` 写入 `adaptive.review`
 
 ---
 
-## Step 5 — Spaced Review（下一步）
+## Selection 总优先级
 
-- Domain：`src/domain/review/*`
-- 粒度：KnowledgeNode
-- 间隔：1 → 3 → 7 → 14 → 30（天）
-- `isDue` / `scheduleNext` 纯函数
-- Save：`adaptive.review`
-- Selection 可在后续把 due 复习提到优先级 1（本 Step 至少落地模型 + 测试）
+1. Due review（KnowledgeNode）
+2. `calibration.recommendedQuestId`
+3. Difficulty path（level）
+4. 候选列表第一项
+
+---
+
+## Step 6 — Integration + Tests（下一步）
+
+- 补齐端到端 / 回归测试边界
+- 确认 `npm test` + `npm run build`
+- 更新 README / PROGRESS 为 Sprint 3 收尾状态
+- 可选：创建或更新 GitHub Issue
 
 ---
 

@@ -4,6 +4,7 @@ import type { Player } from '../domain/player/types';
 import type { ProgressMap } from '../domain/progress/types';
 import type { SkillEvidence, SkillMasteryMap } from '../domain/skill/types';
 import type { CalibrationAnswer, CalibrationResult } from '../domain/calibration/types';
+import { applyQuestOutcomeToReview } from '../domain/review/review';
 import { advanceStreak, resetStreak } from '../domain/player/streak';
 import { quests } from '../content/quests';
 import { asyncWorldCalibration } from '../content/calibration/asyncWorld';
@@ -38,7 +39,6 @@ interface GameState {
   submitAnswer: () => void;
   retryQuest: () => void;
   exitQuest: () => void;
-  /** Persist calibration result only; no XP / evidence / progress mutation. */
   finishCalibration: (answers: CalibrationAnswer[], completedAt?: string) => CalibrationResult;
 }
 
@@ -120,6 +120,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   startQuest: (questId) => {
     const progress = get().progress[questId];
+    // Allow cleared quests for spaced-review replay; block locked only.
     if (!progress || progress.status === 'locked') return;
 
     set({ runtime: { questId, selectedAnswer: null, result: null } });
@@ -172,6 +173,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       skillMastery: learningResult.mastery,
     };
 
+    const nextReview = applyQuestOutcomeToReview(
+      adaptive.review,
+      quest.knowledgeNodeIds,
+      passed,
+    );
+    const nextAdaptive: AdaptiveSaveState = {
+      ...adaptive,
+      review: nextReview,
+    };
+
     const nextState = {
       player: nextPlayer,
       progress: nextProgress,
@@ -179,7 +190,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       skillMastery: nextLearning.skillMastery,
       currentStreak: streak.current,
       bestStreak: streak.best,
-      adaptive,
+      adaptive: nextAdaptive,
     };
 
     repository.save(toSave(nextState));
