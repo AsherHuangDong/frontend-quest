@@ -65,7 +65,6 @@ export function buildHubStatusBanner(input: {
   return null;
 }
 
-/** Used in tests / diagnostics. */
 export function isReturnWindow(lastActiveAt: string | null | undefined, now: string): boolean {
   return hoursAway(lastActiveAt, now) !== null;
 }
