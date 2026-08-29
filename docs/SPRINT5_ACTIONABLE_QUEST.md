@@ -1,6 +1,6 @@
 # Sprint 5 — Actionable Quest Slice
 
-> Status: Implementation（Step 3 完成）  
+> Status: Implementation（Step 4 完成）  
 > Concept: **Learning Adventure**  
 > Story tone: **B · 轻奇幻** — 异步之城 · 时间裂缝  
 > Goal: 验证「行动 → 可见结果」是否比点选项更让人愿意继续（H1）  
@@ -16,19 +16,14 @@
 | 1 | Adventure 关 content + 判定 | ✅ |
 | 2 | Lab UI | ✅ |
 | 3 | Hub 城相入口 | ✅ |
-| 4 | 进度/证据接线 | ⬜ 下一步 |
-| 5 | 测试与验收 | ⬜ |
+| 4 | 进度/证据接线 | ✅ |
+| 5 | 测试与验收 | ⬜ 下一步 |
 
-## 已锁定
+## Step 4 交付
 
-1. Tone B ✅  
-2. 第 1 章样板关 ✅  
-3. 交互 A 排序 ✅  
-4. 训练室暂藏 ✅  
-
-## Step 3 交付
-
-- Hub 以「当前异象」为主入口（去题库化）
-- 标题改为异步之城 / 第一卷《时序初章》
-- 旧任务列表（训练室）完全隐藏
-- 定级降为次要操作；主 CTA = 进入金库现场
+- `src/application/useCases/completeAdventure.ts` + 测试
+- `gameStore.completeAdventureChapter(chapter)`
+- 首次通关：XP + streak + SkillEvidence(understand/apply) + Review
+- 重玩：记 attempts / 证据，不重复发 XP
+- Hub：异象卡片显示「已修复」
+- 不新增存档 version，复用 ProgressMap / learning
