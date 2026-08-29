@@ -2,15 +2,14 @@
 
 ## 当前状态
 
-- **MVP 工程：** Async World 可玩（Sprint 1–4 ✅）
-- **体验结论：** H1 未成立——仍偏答题器
-- **当前 Sprint：** Sprint 5 — Actionable Quest Slice（**设计中**）
-- **概念主轴：** Learning Adventure（行动 → 可见结果）
-- **设计文档：** `docs/SPRINT5_ACTIONABLE_QUEST.md`
+- **故事调性：** B · 轻奇幻 — 异步之城 · 时间法则
+- **当前 Sprint：** Sprint 5 — Actionable Quest Slice（设计中）
+- **样板章：** 第 1 章《金库契约断裂》（待最终确认）
+- **文档：** `docs/SPRINT5_ACTIONABLE_QUEST.md`
 - **最后更新：** 2026-08-30
 
-## 建议下一步
+## 下一步
 
-1. 确认样板关情境 + 交互方案（排序 / 填空）
-2. 实现单关 Vertical Slice
-3. 对比旧选择题，验收是否更想继续
+1. 确认第 1 章 + 交互 A/B + 旧题入口
+2. 实现 Vertical Slice
+3. 验收是否更想续章
