@@ -2,7 +2,7 @@
 
 > 把前端知识学习、能力训练与能力考核做成一个可闯关的游戏。
 
-urlGitHub Repositoryhttps://github.com/AsherHuangDong/frontend-quest
+[GitHub Repository](https://github.com/AsherHuangDong/frontend-quest)
 
 ## 项目是什么？
 
@@ -49,17 +49,18 @@ Quest 是训练和产生能力证据的载体，而不是知识本身。长期�
 
 当前处于：
 
-**Sprint 2 — Experience Core**
+**Sprint 3 Planning**
 
-目标：在 Sprint 1 Learning Core 的基础上，让现有 Quest Runtime 形成完整、可持续的游戏体验。
+Sprint 1（Learning Core）与 Sprint 2（Experience Core）均已完成。下一阶段按产品规格进入 Adaptive Core 规划与实施。
 
 详细状态请优先阅读：
 
 1. `docs/PROJECT_SPEC.md` — 产品与架构总纲
 2. `docs/PROJECT_PROGRESS.md` — 当前项目状态
-3. `docs/SPRINT2_EXPERIENCE_CORE.md` — 当前 Sprint 执行计划
+3. `docs/SPRINT1_LEARNING_CORE.md` — Sprint 1 完成记录
+4. `docs/SPRINT2_EXPERIENCE_CORE.md` — Sprint 2 完成记录
 
-如果当前 Sprint 文档不存在，应先修复文档同步问题，不要根据猜测继续开发。
+如果文档与代码不一致，应先修复文档同步问题，不要根据猜测继续开发。
 
 ---
 
@@ -90,22 +91,68 @@ npm run build  ✅
 
 ---
 
-## Sprint 2 当前进度
+## Sprint 2 状态
+
+**Experience Core — 已完成**
 
 | Step | 内容 | 状态 |
 |---|---|---|
-| 1 | Experience Flow / 状态边界 | 🟡 当前 |
-| 2 | Quest Experience Flow | ⬜ |
-| 3 | Failure Recovery | ⬜ |
-| 4 | XP / Level / Progress | ⬜ |
-| 5 | Boss Experience | ⬜ |
-| 6 | Integration + Tests | ⬜ |
+| 1 | Experience Flow / 状态边界 | ✅ |
+| 2 | Quest Experience Flow | ✅ |
+| 3 | Failure Recovery | ✅ |
+| 4 | XP / Level / Progress | ✅ |
+| 5 | Boss Experience | ✅ |
+| 6 | Integration + Tests | ✅ |
+
+最终体验链路：
+
+```text
+Quest
+ ↓
+Evaluation
+ ↓
+QuestProgress
+ ↓
+XP
+ ↓
+Level
+ ↓
+Learning Evidence
+ ↓
+Boss Progress
+ ↓
+Persistence
+```
+
+验证：
+
+```text
+npm test       ✅
+npm run build  ✅
+```
+
+---
+
+## Sprint 3 状态
+
+**Adaptive Core — Planning**
+
+目标（来自 `PROJECT_SPEC`）：
+
+- Calibration
+- Difficulty
+- Quest Selection
+- Spaced Review
+
+已有代码中的最小预研（尚未纳入正式 Sprint 3 Step）：
+
+- `src/application/useCases/getNextQuest.ts`：基于 `prerequisiteQuestIds` 的规则型选题 MVP（非 AI、无 ranking）
+
+正式 Step 列表与验收标准在 Sprint 3 文档创建并完成规划后再开始实现。
 
 ---
 
 ## 当前游戏闭环
-
-现有 P0 Vertical Slice 已经跑通：
 
 ```text
 Chapter
@@ -125,7 +172,7 @@ Unlock
 Persistence
 ```
 
-Sprint 1 已在此闭环之上建立 Learning Core；Sprint 2 将继续增强 Experience Core，而不是推翻现有闭环。
+Learning 与 Experience 已叠加在此闭环之上：
 
 ```text
 Knowledge
@@ -136,7 +183,8 @@ Evaluation
     ├──────────────→ Experience
     │                    ├── XP
     │                    ├── Progress
-    │                    └── Recovery
+    │                    ├── Recovery
+    │                    └── Boss
     │
     └──────────────→ Learning
                          ├── Evidence
@@ -197,11 +245,11 @@ Commit
 
 它是项目的 Project State，包括当前 Sprint、当前 Step、已完成内容、进行中内容、阻塞项、下一步和文档同步状态。
 
-### `docs/SPRINT2_EXPERIENCE_CORE.md`
+### `docs/SPRINT*_*.md`
 
-回答：**当前 Sprint 具体怎么做。**
+回答：**某一 Sprint 具体怎么做 / 做了什么。**
 
-它是当前 Sprint 的 Execution Plan，包括 Sprint 目标、各 Step、设计约束、实现范围和验收标准。
+它是该 Sprint 的 Execution Plan 与完成记录。当前无进行中的 Sprint 正式文档；Sprint 3 文档待创建。
 
 ---
 
@@ -220,7 +268,7 @@ PROJECT_PROGRESS.md
       ↓
 “我们现在在哪”
 
-当前 Sprint 文档
+当前 Sprint 文档（若已创建）
       ↓
 “当前这一步怎么做”
 
