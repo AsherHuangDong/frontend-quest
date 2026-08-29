@@ -10,6 +10,43 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradie
 button { font: inherit; }
 button:not(:disabled) { cursor: pointer; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
+button:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 2px;
+}
+a:focus-visible { outline: 2px solid #fbbf24; outline-offset: 2px; }
+
+/* Light motion */
+.chapter-card, .challenge-card, .quest-card, .banner, .mastery-card, .progress-block {
+  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+}
+.quest-card.status-available:hover {
+  border-color: #71717a;
+  transform: translateY(-1px);
+}
+.submit-button, .hint-button, .quest-card button {
+  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.submit-button:not(:disabled):hover, .hint-button:not(:disabled):hover, .quest-card button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+.submit-button.primary:not(:disabled):hover {
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.25);
+}
+.options button {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.result { animation: result-in 0.28s ease-out; }
+@keyframes result-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 
 .app-shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 48px 0 80px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
@@ -58,7 +95,8 @@ h3 { margin: 0 0 12px; font-size: 16px; color: #e4e4e7; }
 .quest-card { display:flex; justify-content:space-between; align-items:center; padding:22px; border:1px solid #3f3f46; border-radius:16px; background:#18181b; gap: 16px; }
 .quest-card.status-cleared { border-color: #14532d; background: rgba(20, 83, 45, 0.2); }
 .quest-card.status-available { border-color: #3f3f46; }
-.quest-card.status-locked { opacity: 0.75; }
+.quest-card.status-locked { opacity: 0.72; }
+.quest-card.status-locked .lock-hint { margin: 6px 0 0; color: #71717a; font-size: 12px; line-height: 1.4; }
 .quest-info p { margin: 6px 0 0; color: #a1a1aa; font-size: 13px; }
 .quest-card button, .submit-button, .hint-button { border:0; border-radius:10px; padding:12px 18px; color:#09090b; background:#f4f4f5; font-weight:700; }
 .submit-button.primary { background: #fbbf24; }
