@@ -12,12 +12,10 @@
 
 - Step 0：锁定交互 A 排序 + 训练室暂藏 + 第 1 章作为样板关
 - Step 1：Adventure domain types + chapter1 content + deterministic evaluate
-- Step 2：Lab UI（状态面板 + 卡片排序 + Run + intro/fail/success）
-  - `src/presentation/components/adventure/AdventureLab.tsx`
-  - Hub 临时入口（待 Step 3 替换为正式城相）
+- Step 2：Lab UI（状态面板 + 卡片排序 + Run）
+- Step 3：City Hub（异象为先、去题库化、训练室暂藏）
 
 ## 下一步
 
-1. Step 3 — Hub 城相入口（去题库化）
-2. Step 4 — 进度/证据接线
-3. Step 5 — 测试与验收
+1. Step 4 — 进度/证据接线（Adventure 成功写入 progress / evidence）
+2. Step 5 — 测试与验收
