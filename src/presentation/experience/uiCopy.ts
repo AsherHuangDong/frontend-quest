@@ -1,29 +1,31 @@
 /** Shared player-facing copy for MVP hub / quest flow. */
 
 export const UI = {
-  productEyebrow: 'FRONTEND QUEST · MVP',
-  worldTitle: 'Async World',
+  productEyebrow: 'FRONTEND QUEST · 异步之城',
+  worldTitle: '异步之城',
+  volumeTitle: '第一卷《时序初章》',
 
-  onboardingTitle: '三步开始',
+  onboardingTitle: '时序学徒入城',
   onboardingSteps: [
     { n: '1', title: '定级（可选）', body: '3 道题帮你找起点，不是考试，也不发 XP。' },
-    { n: '2', title: '按推荐挑战', body: '点「下一题」即可；答错可看提示再试。' },
-    { n: '3', title: '看见成长', body: 'XP、通关进度和能力掌握会留在本地。' },
+    { n: '2', title: '修复异象', body: '进入当前异象，用行动让城市状态回复。' },
+    { n: '3', title: '法则铭刻', body: '每修复一处错乱，掌握一条时间法则。' },
   ] as const,
 
   ctaCalibrate: '开始定级',
-  ctaSkipCalibrate: '先跳过，直接挑战',
+  ctaSkipCalibrate: '先跳过，直接进城',
   ctaNextQuest: '下一题',
   ctaStartRecommended: '按推荐开始',
   ctaRetry: '再试一次',
   ctaHint: '需要提示',
-  ctaBackHub: '返回大厅',
+  ctaBackHub: '返回城中',
   ctaReview: '开始复习',
   ctaChallenge: '挑战',
   ctaReplay: '复习',
   ctaLocked: '未解锁',
   ctaFinishCalibrate: '完成定级',
   ctaCalibrateNext: '下一题',
+  ctaEnterAnomaly: '进入金库现场',
 
   statusCleared: '已通关',
   statusAvailable: '可挑战',
@@ -39,5 +41,5 @@ export const UI = {
     `不是进度倒退，只是记忆需要再加固：${nodes}`,
 
   noNextQuest: '暂时没有可推荐的下一题（可能已全部通关）',
-  allClearHub: '返回大厅看看进度',
+  allClearHub: '返回城中看看进度',
 } as const;
