@@ -5,6 +5,7 @@ import type { ProgressMap } from '../domain/progress/types';
 import type { BossProgress } from '../domain/boss/types';
 import type { SkillEvidence, SkillMasteryMap } from '../domain/skill/types';
 import type { CalibrationAnswer, CalibrationResult } from '../domain/calibration/types';
+import type { AdventureChapter } from '../domain/adventure/types';
 import { applyQuestOutcomeToReview } from '../domain/review/review';
 import { advanceStreak, resetStreak } from '../domain/player/streak';
 import { completePhase, createBossProgress, startBoss } from '../domain/boss/stateMachine';
@@ -14,6 +15,7 @@ import { asyncWorldCalibration } from '../content/calibration/asyncWorld';
 import { submitQuest } from './useCases/submitQuest';
 import { recordQuestSkillEvidence } from './useCases/recordQuestSkillEvidence';
 import { completeCalibration } from './useCases/completeCalibration';
+import { completeAdventure } from './useCases/completeAdventure';
 import { mergeQuestProgress } from './progressMigration';
 import { LocalStorageGameRepository } from '../infrastructure/persistence/localStorageGameRepository';
 import {
@@ -51,6 +53,7 @@ interface GameState {
   retryQuest: () => void;
   exitQuest: () => void;
   finishCalibration: (answers: CalibrationAnswer[], completedAt?: string) => CalibrationResult;
+  completeAdventureChapter: (chapter: AdventureChapter) => { awardedXp: number; alreadyCleared: boolean };
 }
 
 const repository = new LocalStorageGameRepository();
@@ -124,7 +127,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   startQuest: (questId) => {
     const progress = get().progress[questId];
-    // Allow cleared quests for review replay.
     if (!progress || progress.status === 'locked') return;
     const adaptive = touchAdaptiveActivity(get().adaptive);
     const current = get();
@@ -323,6 +325,43 @@ export const useGameStore = create<GameState>((set, get) => ({
     repository.save(toSave(nextState));
     set({ adaptive: nextAdaptive });
     return result;
+  },
+
+  completeAdventureChapter: (chapter) => {
+    const current = get();
+    const outcome = completeAdventure({
+      chapter,
+      player: current.player,
+      progress: current.progress,
+      skillEvidence: current.skillEvidence,
+      currentStreak: current.currentStreak,
+      bestStreak: current.bestStreak,
+      review: current.adaptive.review,
+    });
+
+    const nextAdaptive: AdaptiveSaveState = touchAdaptiveActivity({
+      ...current.adaptive,
+      review: outcome.review,
+    });
+
+    const nextState = {
+      player: outcome.player,
+      progress: outcome.progress,
+      skillEvidence: outcome.skillEvidence,
+      skillMastery: outcome.skillMastery,
+      currentStreak: outcome.currentStreak,
+      bestStreak: outcome.bestStreak,
+      bossProgress: current.bossProgress,
+      adaptive: nextAdaptive,
+    };
+
+    repository.save(toSave(nextState));
+    set(nextState);
+
+    return {
+      awardedXp: outcome.awardedXp,
+      alreadyCleared: outcome.alreadyCleared,
+    };
   },
 }));
 

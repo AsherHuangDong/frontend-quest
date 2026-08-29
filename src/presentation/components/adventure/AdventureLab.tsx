@@ -14,6 +14,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
   const [phase, setPhase] = useState<LabPhase>('intro');
   const [order, setOrder] = useState<string[]>([...chapter.initialOrder]);
   const [evaluation, setEvaluation] = useState<AdventureEvaluationResult | null>(null);
+  const [persisted, setPersisted] = useState(false);
 
   function move(id: string, direction: -1 | 1) {
     setOrder((prev) => {
@@ -29,11 +30,18 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
 
   function handleRun() {
     setPhase('running');
-    // tiny delay for "running" feel
     window.setTimeout(() => {
       const result = evaluateChapterOrder(order, chapter.correctOrder);
       setEvaluation(result);
-      setPhase(result.success ? 'success' : 'failed');
+      if (result.success) {
+        setPhase('success');
+        if (!persisted) {
+          onSuccess?.();
+          setPersisted(true);
+        }
+      } else {
+        setPhase('failed');
+      }
     }, 420);
   }
 
@@ -75,7 +83,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
       {(phase === 'lab' || phase === 'running' || phase === 'failed') && (
         <>
           <h2 className="lab-title">重排契约誓约顺序</h2>
-          <p className="lab-hint">拖动不了就用上下箭头调整，然后点「唤起时序」。</p>
+          <p className="lab-hint">用上下箭头调整顺序，然后点「唤起时序」。</p>
 
           <div className="status-panel">
             {chapter.statusPanel.map((item) => {
@@ -172,13 +180,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
           </div>
 
           <div className="action-bar">
-            <button
-              className="submit-button primary"
-              onClick={() => {
-                onSuccess?.();
-                onBack();
-              }}
-            >
+            <button className="submit-button primary" onClick={onBack}>
               返回城中
             </button>
           </div>
