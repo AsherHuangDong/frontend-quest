@@ -4,14 +4,24 @@ import type { Player } from '../domain/player/types';
 import type { ProgressMap } from '../domain/progress/types';
 import type { BossProgress } from '../domain/boss/types';
 import type { SkillEvidence, SkillMasteryMap } from '../domain/skill/types';
+import type { CalibrationAnswer, CalibrationResult } from '../domain/calibration/types';
+import { applyQuestOutcomeToReview } from '../domain/review/review';
 import { advanceStreak, resetStreak } from '../domain/player/streak';
 import { completePhase, createBossProgress, startBoss } from '../domain/boss/stateMachine';
 import { asyncBoss } from '../content/bosses/asyncBoss';
 import { quests } from '../content/quests';
+import { asyncWorldCalibration } from '../content/calibration/asyncWorld';
 import { submitQuest } from './useCases/submitQuest';
+import { recordQuestSkillEvidence } from './useCases/recordQuestSkillEvidence';
+import { completeCalibration } from './useCases/completeCalibration';
 import { mergeQuestProgress } from './progressMigration';
 import { LocalStorageGameRepository } from '../infrastructure/persistence/localStorageGameRepository';
-import type { GameSave } from '../infrastructure/persistence/gameRepository';
+import {
+  createDefaultAdaptiveState,
+  normalizeAdaptiveState,
+  type AdaptiveSaveState,
+  type GameSave,
+} from '../infrastructure/persistence/gameRepository';
 
 interface QuestRuntime {
   questId: string;
@@ -24,9 +34,12 @@ interface QuestRuntime {
 interface GameState {
   player: Player;
   progress: ProgressMap;
+  skillEvidence: SkillEvidence[];
+  skillMastery: SkillMasteryMap;
   currentStreak: number;
   bestStreak: number;
   bossProgress: BossProgress;
+  adaptive: AdaptiveSaveState;
   runtime: QuestRuntime | null;
   startQuest: (questId: string) => void;
   startBossPhase: () => void;
@@ -36,12 +49,40 @@ interface GameState {
   submitAnswer: () => void;
   retryQuest: () => void;
   exitQuest: () => void;
+  finishCalibration: (answers: CalibrationAnswer[], completedAt?: string) => CalibrationResult;
 }
 
 const repository = new LocalStorageGameRepository();
 
 function createInitialProgress(): ProgressMap {
   return mergeQuestProgress({}, quests);
+}
+
+function toSave(state: {
+  player: Player;
+  progress: ProgressMap;
+  skillEvidence: SkillEvidence[];
+  skillMastery: SkillMasteryMap;
+  currentStreak: number;
+  bestStreak: number;
+  bossProgress: BossProgress;
+  adaptive: AdaptiveSaveState;
+}): GameSave {
+  return {
+    version: 1,
+    player: state.player,
+    progress: state.progress,
+    learning: {
+      skillEvidence: state.skillEvidence,
+      skillMastery: state.skillMastery,
+    },
+    gameplay: {
+      currentStreak: state.currentStreak,
+      bestStreak: state.bestStreak,
+      bossProgress: state.bossProgress,
+    },
+    adaptive: state.adaptive,
+  };
 }
 
 function loadSave(): GameSave {
@@ -52,6 +93,7 @@ function loadSave(): GameSave {
       learning: save.learning ?? { skillEvidence: [], skillMastery: {} },
       progress: mergeQuestProgress(save.progress, quests),
       gameplay: save.gameplay ?? { currentStreak: 0, bestStreak: 0 },
+      adaptive: normalizeAdaptiveState(save.adaptive),
     };
   }
 
@@ -61,6 +103,7 @@ function loadSave(): GameSave {
     progress: createInitialProgress(),
     learning: { skillEvidence: [], skillMastery: {} },
     gameplay: { currentStreak: 0, bestStreak: 0 },
+    adaptive: createDefaultAdaptiveState(),
   };
 }
 
@@ -70,29 +113,46 @@ const initialBossProgress = initialSave.gameplay.bossProgress ?? createBossProgr
 export const useGameStore = create<GameState>((set, get) => ({
   player: initialSave.player,
   progress: initialSave.progress,
+  skillEvidence: initialSave.learning.skillEvidence,
+  skillMastery: initialSave.learning.skillMastery,
   currentStreak: initialSave.gameplay.currentStreak,
   bestStreak: initialSave.gameplay.bestStreak,
   bossProgress: initialBossProgress,
+  adaptive: normalizeAdaptiveState(initialSave.adaptive),
   runtime: null,
 
   startQuest: (questId) => {
     const progress = get().progress[questId];
+    // Allow cleared quests for review replay.
     if (!progress || progress.status === 'locked') return;
-    set({ runtime: { questId, selectedAnswer: null, result: null, hintsUsed: 0, bossPhaseId: null } });
+    set({
+      runtime: {
+        questId,
+        selectedAnswer: null,
+        result: null,
+        hintsUsed: 0,
+        bossPhaseId: null,
+      },
+    });
   },
 
   startBoss: () => {
     const bossProgress = get().bossProgress;
     const started = startBoss(bossProgress);
     if (started === bossProgress) return;
-    const save = repository.load();
-    repository.save({
-      version: 1,
-      player: get().player,
-      progress: get().progress,
-      learning: save?.learning ?? { skillEvidence: [], skillMastery: {} },
-      gameplay: { currentStreak: get().currentStreak, bestStreak: get().bestStreak, bossProgress: started },
-    });
+    const current = get();
+    repository.save(
+      toSave({
+        player: current.player,
+        progress: current.progress,
+        skillEvidence: current.skillEvidence,
+        skillMastery: current.skillMastery,
+        currentStreak: current.currentStreak,
+        bestStreak: current.bestStreak,
+        bossProgress: started,
+        adaptive: current.adaptive,
+      }),
+    );
     set({ bossProgress: started });
   },
 
@@ -107,7 +167,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     const started = bossProgress.status === 'AVAILABLE' ? startBoss(bossProgress) : bossProgress;
     set({
       bossProgress: started,
-      runtime: { questId, selectedAnswer: null, result: null, hintsUsed: 0, bossPhaseId: phase.id },
+      runtime: {
+        questId,
+        selectedAnswer: null,
+        result: null,
+        hintsUsed: 0,
+        bossPhaseId: phase.id,
+      },
     });
   },
 
@@ -126,7 +192,16 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   submitAnswer: () => {
-    const { runtime, player, progress, currentStreak, bestStreak, bossProgress } = get();
+    const {
+      runtime,
+      player,
+      progress,
+      skillEvidence,
+      currentStreak,
+      bestStreak,
+      bossProgress,
+      adaptive,
+    } = get();
     if (!runtime || runtime.result || !runtime.selectedAnswer) return;
 
     const quest = quests.find((item) => item.id === runtime.questId);
@@ -137,9 +212,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     const result = submitQuest(quest, runtime.selectedAnswer, player, progress, runtime.hintsUsed);
     const passed = result.evaluation.passed;
 
-    const nextQuestProgress = wasCleared && !passed
-      ? { ...result.progress, status: 'cleared' as const }
-      : result.progress;
+    const nextQuestProgress =
+      wasCleared && !passed
+        ? { ...result.progress, status: 'cleared' as const }
+        : result.progress;
     const nextProgress = { ...progress, [quest.id]: nextQuestProgress };
 
     for (const unlockedQuestId of result.unlockedQuestIds) {
@@ -153,7 +229,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       ? resetStreak(bestStreak)
       : advanceStreak(currentStreak, bestStreak, !wasCleared);
     const replayAdjustment = passed && wasCleared ? -quest.reward.xp : 0;
-    let nextPlayer = { ...result.player, xp: result.player.xp + streak.bonusXp + replayAdjustment };
+    let nextPlayer = {
+      ...result.player,
+      xp: result.player.xp + streak.bonusXp + replayAdjustment,
+    };
     let nextBossProgress = bossProgress;
 
     if (runtime.bossPhaseId) {
@@ -163,21 +242,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }
 
-    const save = repository.load();
-    repository.save({
-      version: 1,
-      player: nextPlayer,
-      progress: nextProgress,
-      learning: save?.learning ?? { skillEvidence: [], skillMastery: {} },
-      gameplay: { currentStreak: streak.current, bestStreak: streak.best, bossProgress: nextBossProgress },
-    });
+    const learningResult = recordQuestSkillEvidence(quest, result.evaluation, skillEvidence);
+    const nextReview = applyQuestOutcomeToReview(
+      adaptive.review,
+      quest.knowledgeNodeIds,
+      passed,
+    );
+    const nextAdaptive: AdaptiveSaveState = {
+      ...adaptive,
+      review: nextReview,
+    };
 
-    set({
+    const nextState = {
       player: nextPlayer,
       progress: nextProgress,
+      skillEvidence: [...skillEvidence, ...learningResult.evidence],
+      skillMastery: learningResult.mastery,
       currentStreak: streak.current,
       bestStreak: streak.best,
       bossProgress: nextBossProgress,
+      adaptive: nextAdaptive,
+    };
+
+    repository.save(toSave(nextState));
+
+    set({
+      ...nextState,
       runtime: { ...runtime, result: result.evaluation },
     });
   },
@@ -185,10 +275,39 @@ export const useGameStore = create<GameState>((set, get) => ({
   retryQuest: () => {
     const { runtime } = get();
     if (!runtime) return;
-    set({ runtime: { ...runtime, selectedAnswer: null, result: null, hintsUsed: 0 } });
+    set({
+      runtime: {
+        ...runtime,
+        selectedAnswer: null,
+        result: null,
+        hintsUsed: 0,
+      },
+    });
   },
 
   exitQuest: () => set({ runtime: null }),
+
+  finishCalibration: (answers, completedAt) => {
+    const result = completeCalibration(asyncWorldCalibration, answers, completedAt);
+    const current = get();
+    const nextAdaptive: AdaptiveSaveState = {
+      ...current.adaptive,
+      calibration: result,
+    };
+    const nextState = {
+      player: current.player,
+      progress: current.progress,
+      skillEvidence: current.skillEvidence,
+      skillMastery: current.skillMastery,
+      currentStreak: current.currentStreak,
+      bestStreak: current.bestStreak,
+      bossProgress: current.bossProgress,
+      adaptive: nextAdaptive,
+    };
+    repository.save(toSave(nextState));
+    set({ adaptive: nextAdaptive });
+    return result;
+  },
 }));
 
 export function getQuest(questId: string): Quest | undefined {
