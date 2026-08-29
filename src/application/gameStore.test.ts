@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { selectNextQuest } from './useCases/getNextQuest';
+import { quests } from '../content/quests';
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
@@ -261,5 +263,84 @@ describe('gameStore adaptive calibration', () => {
 
     expect(storeModule.useGameStore.getState().adaptive.calibration?.level).toBe('advanced');
     expect(storeModule.useGameStore.getState().adaptive.calibration?.recommendedQuestId).toBeNull();
+  });
+});
+
+describe('gameStore adaptive review integration', () => {
+  beforeEach(() => {
+    storage.clear();
+    installStorage();
+  });
+
+  it('schedules knowledge-node review after a successful quest', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().selectAnswer('B');
+    useGameStore.getState().submitAnswer();
+
+    const review = useGameStore.getState().adaptive.review.promise;
+    expect(review).toBeDefined();
+    expect(review?.knowledgeNodeId).toBe('promise');
+    expect(review?.intervalIndex).toBe(0);
+    expect(review?.lastReviewedAt).toBeTruthy();
+    expect(review?.nextDueAt).toBeTruthy();
+  });
+
+  it('allows starting a cleared quest for review replay', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().selectAnswer('B');
+    useGameStore.getState().submitAnswer();
+    useGameStore.getState().exitQuest();
+
+    useGameStore.getState().startQuest('promise-basics');
+    expect(useGameStore.getState().runtime?.questId).toBe('promise-basics');
+  });
+
+  it('persists review state across store reload', async () => {
+    let storeModule = await loadStore();
+
+    storeModule.useGameStore.getState().startQuest('promise-basics');
+    storeModule.useGameStore.getState().selectAnswer('B');
+    storeModule.useGameStore.getState().submitAnswer();
+
+    const dueAt = storeModule.useGameStore.getState().adaptive.review.promise?.nextDueAt;
+    expect(dueAt).toBeTruthy();
+
+    vi.resetModules();
+    storeModule = await import('./gameStore');
+
+    expect(storeModule.useGameStore.getState().adaptive.review.promise?.nextDueAt).toBe(dueAt);
+  });
+
+  it('selectNextQuest uses store calibration and review together', async () => {
+    const { useGameStore } = await loadStore();
+
+    useGameStore.getState().finishCalibration(
+      [
+        { questId: 'promise-basics', score: 100, passed: true },
+        { questId: 'event-loop', score: 100, passed: true },
+        { questId: 'async-await-final', score: 40, passed: false },
+      ],
+      '2026-08-30T00:00:00.000Z',
+    );
+
+    useGameStore.getState().startQuest('promise-basics');
+    useGameStore.getState().selectAnswer('B');
+    useGameStore.getState().submitAnswer();
+
+    const state = useGameStore.getState();
+    const next = selectNextQuest({
+      quests,
+      progress: state.progress,
+      calibration: state.adaptive.calibration,
+      review: state.adaptive.review,
+    });
+
+    // Without due review yet, recommendation or difficulty path applies.
+    expect(next).not.toBeNull();
+    expect(state.adaptive.calibration?.recommendedQuestId).toBe('async-await-final');
   });
 });
