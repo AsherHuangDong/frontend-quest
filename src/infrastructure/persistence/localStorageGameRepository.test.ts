@@ -78,6 +78,31 @@ describe('LocalStorageGameRepository', () => {
     expect(repository.load()).toEqual(save);
   });
 
+  it('persists and restores adaptive calibration state', () => {
+    const repository = new LocalStorageGameRepository();
+    const save: GameSave = {
+      version: 1,
+      player: { id: 'player-1', name: 'Frontend Knight', xp: 0 },
+      progress: {},
+      learning: { skillEvidence: [], skillMastery: {} },
+      gameplay: { currentStreak: 0, bestStreak: 0 },
+      adaptive: {
+        calibration: {
+          calibrationId: 'async-world-calibration',
+          level: 'intermediate',
+          score: 75,
+          recommendedQuestId: 'async-await-final',
+          completedAt: '2026-08-30T00:00:00.000Z',
+        },
+        review: {},
+      },
+    };
+
+    repository.save(save);
+
+    expect(repository.load()).toEqual(save);
+  });
+
   it('removes the save', () => {
     const repository = new LocalStorageGameRepository();
     storage.setItem(STORAGE_KEY, JSON.stringify({ version: 1 }));
