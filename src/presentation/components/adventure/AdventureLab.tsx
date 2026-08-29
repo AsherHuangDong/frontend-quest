@@ -63,6 +63,9 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
       <div className="meta-chip">
         第 {chapter.chapterNumber} 章 · {chapter.title}
       </div>
+      <div className="meta-chip learn-chip">
+        本章知识：Promise 链顺序（.then）
+      </div>
 
       {phase === 'intro' && (
         <>
@@ -71,7 +74,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
           </div>
           <div className="action-bar">
             <button className="submit-button primary" onClick={() => setPhase('lab')}>
-              进入现场
+              开始重排契约
             </button>
             <button className="hint-button" onClick={onBack}>
               返回
@@ -82,8 +85,12 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
 
       {(phase === 'lab' || phase === 'running' || phase === 'failed') && (
         <>
-          <h2 className="lab-title">重排契约誓约顺序</h2>
-          <p className="lab-hint">用上下箭头调整顺序，然后点「唤起时序」。</p>
+          <h2 className="lab-title">重排 Promise 链（then 顺序）</h2>
+          <p className="lab-hint">
+            每张卡 = 链上的一步。正确顺序应是：
+            <code className="inline-code">payment → createOrder → updateInventory</code>
+            。用 ↑ ↓ 调整后点「唤起时序」。
+          </p>
 
           <div className="status-panel">
             {chapter.statusPanel.map((item) => {
@@ -109,7 +116,9 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
                 <div className="reorder-index">{index + 1}</div>
                 <div className="reorder-body">
                   <strong>{labelFor(id)}</strong>
-                  <small>{codeHintFor(id)}</small>
+                  <small>
+                    对应代码：<code>{codeHintFor(id)}</code>
+                  </small>
                 </div>
                 <div className="reorder-controls">
                   <button
@@ -144,7 +153,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
           <div className="action-bar">
             {phase === 'lab' && (
               <button className="submit-button primary" onClick={handleRun}>
-                唤起时序
+                唤起时序（运行链）
               </button>
             )}
             {phase === 'running' && (
