@@ -4,34 +4,16 @@
 
 - **MVP:** Async World
 - **当前 Sprint:** Sprint 3 — Adaptive Core
-- **当前 Step:** Step 4 — Difficulty Path
+- **当前 Step:** Step 5 — Spaced Review 最小模型
 - **AI:** 暂不接入
-- **Sprint 1:** 已完成
-- **Sprint 2:** 已完成
+- **Sprint 1 / 2:** 已完成
 - **最后更新:** 2026-08-30
-- **文档同步:** Step 3 selectNextQuest 已实现并有单测
-
----
-
-# Sprint 1 — Learning Core
-
-状态：✅ Completed — 详见 `docs/SPRINT1_LEARNING_CORE.md`
-
----
-
-# Sprint 2 — Experience Core
-
-状态：✅ Completed — 详见 `docs/SPRINT2_EXPERIENCE_CORE.md`
 
 ---
 
 # Sprint 3 — Adaptive Core
 
-状态：🟡 In Progress
-
-执行计划：`docs/SPRINT3_ADAPTIVE_CORE.md`
-
-## Step 状态
+状态：🟡 In Progress — `docs/SPRINT3_ADAPTIVE_CORE.md`
 
 | Step | 内容 | 状态 |
 |---|---|---|
@@ -39,21 +21,22 @@
 | 1 | Adaptive 边界 + 数据模型扩展设计 | ✅ |
 | 2 | Calibration Content + Persist + 接入 | ✅ |
 | 3 | Quest Selection（扩展 getNextQuest） | ✅ |
-| 4 | Difficulty Path | 🟡 当前 |
-| 5 | Spaced Review 最小模型 | ⬜ |
+| 4 | Difficulty Path | ✅ |
+| 5 | Spaced Review 最小模型 | 🟡 当前 |
 | 6 | Integration + Tests | ⬜ |
 
-## Step 3 完成摘要
+## Step 4 完成摘要
 
-- `selectNextQuest({ quests, progress, calibration })`
-- 优先 `calibration.recommendedQuestId`（须为可选题：非 locked/cleared 且 prereq 满足）
-- 否则回退为候选列表第一项（与原 `getNextQuest` 一致）
-- `getNextQuest` 保留为无 calibration 的薄封装
-- 测试：`src/application/useCases/getNextQuest.test.ts`
+- `preferByDifficultyPath(candidates, level)`
+  - beginner：difficulty ≤ 2
+  - intermediate：2–4
+  - advanced：≥ 3（否则回退全候选，避免死锁）
+- `selectNextQuest`：recommended → difficulty path → 首个候选
+- 测试覆盖 path 与 advanced 跳过低难度
 
 ## 下一步
 
-**Step 4：** Difficulty Path（beginner / intermediate / advanced 与 difficulty 偏好）。
+**Step 5：** Spaced Review 最小模型（KnowledgeNode 粒度，间隔 1/3/7/14/30）。
 
 ---
 

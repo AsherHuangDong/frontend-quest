@@ -3,11 +3,13 @@ import type { CalibrationResult } from '../../domain/calibration/types';
 import type { ProgressMap } from '../../domain/progress/types';
 import type { Quest } from '../../domain/quest/types';
 import { quests } from '../../content/quests';
-import { getNextQuest, selectNextQuest } from './getNextQuest';
+import {
+  getNextQuest,
+  preferByDifficultyPath,
+  selectNextQuest,
+} from './getNextQuest';
 
-function buildProgress(
-  overrides: Partial<ProgressMap> = {},
-): ProgressMap {
+function buildProgress(overrides: Partial<ProgressMap> = {}): ProgressMap {
   const base: ProgressMap = Object.fromEntries(
     quests.map((quest) => [
       quest.id,
@@ -60,7 +62,6 @@ describe('getNextQuest', () => {
       'promise-chain': available('promise-chain'),
     });
 
-    // quests array order: promise-basics, promise-state, promise-chain, ...
     expect(getNextQuest(quests, progress)?.id).toBe('promise-state');
   });
 
@@ -69,6 +70,28 @@ describe('getNextQuest', () => {
       Object.fromEntries(quests.map((quest) => [quest.id, clear(quest.id)])) as ProgressMap,
     );
     expect(getNextQuest(quests, progress)).toBeNull();
+  });
+});
+
+describe('preferByDifficultyPath', () => {
+  const sample = [
+    { id: 'a', difficulty: 1 },
+    { id: 'b', difficulty: 2 },
+    { id: 'c', difficulty: 3 },
+  ] as Quest[];
+
+  it('beginner prefers difficulty <= 2', () => {
+    expect(preferByDifficultyPath(sample, 'beginner').map((q) => q.id)).toEqual(['a', 'b']);
+  });
+
+  it('intermediate prefers difficulty 2-4', () => {
+    expect(preferByDifficultyPath(sample, 'intermediate').map((q) => q.id)).toEqual(['b', 'c']);
+  });
+
+  it('advanced prefers difficulty >= 3 and falls back when empty', () => {
+    expect(preferByDifficultyPath(sample, 'advanced').map((q) => q.id)).toEqual(['c']);
+    const onlyEasy = [{ id: 'a', difficulty: 1 }] as Quest[];
+    expect(preferByDifficultyPath(onlyEasy, 'advanced').map((q) => q.id)).toEqual(['a']);
   });
 });
 
@@ -108,14 +131,53 @@ describe('selectNextQuest', () => {
       calibrationId: 'async-world-calibration',
       level: 'intermediate',
       score: 80,
-      recommendedQuestId: 'event-loop', // still locked (needs promise-chain)
+      recommendedQuestId: 'event-loop',
       completedAt: '2026-08-30T00:00:00.000Z',
     };
 
+    // intermediate prefers difficulty 2-4; promise-state is 1, promise-chain is 2
+    expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('promise-chain');
+  });
+
+  it('uses beginner difficulty path when recommendation is null', () => {
+    const progress = buildProgress({
+      'promise-basics': clear('promise-basics'),
+      'promise-state': available('promise-state'),
+      'promise-chain': available('promise-chain'),
+    });
+
+    const calibration: CalibrationResult = {
+      calibrationId: 'async-world-calibration',
+      level: 'beginner',
+      score: 40,
+      recommendedQuestId: null,
+      completedAt: '2026-08-30T00:00:00.000Z',
+    };
+
+    // both difficulty <= 2; array order keeps promise-state first
     expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('promise-state');
   });
 
-  it('falls back when recommendedQuestId is null', () => {
+  it('advanced skips low difficulty when harder candidates exist', () => {
+    const progress = buildProgress({
+      'promise-basics': clear('promise-basics'),
+      'promise-chain': clear('promise-chain'),
+      'promise-state': available('promise-state'), // difficulty 1
+      'async-await-final': available('async-await-final'), // difficulty 3
+    });
+
+    const calibration: CalibrationResult = {
+      calibrationId: 'async-world-calibration',
+      level: 'advanced',
+      score: 100,
+      recommendedQuestId: null,
+      completedAt: '2026-08-30T00:00:00.000Z',
+    };
+
+    expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('async-await-final');
+  });
+
+  it('falls back when recommendedQuestId is null and no level filter needed', () => {
     const progress = buildProgress();
     const calibration: CalibrationResult = {
       calibrationId: 'async-world-calibration',
@@ -125,6 +187,7 @@ describe('selectNextQuest', () => {
       completedAt: '2026-08-30T00:00:00.000Z',
     };
 
+    // only promise-basics is available (difficulty 1); advanced falls back to it
     expect(selectNextQuest({ quests, progress, calibration })?.id).toBe('promise-basics');
   });
 
