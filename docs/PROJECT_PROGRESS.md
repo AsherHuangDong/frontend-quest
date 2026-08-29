@@ -2,20 +2,15 @@
 
 ## 当前状态
 
-- **MVP:** Async World（可玩）
-- **Sprint 1–4:** ✅
-- **当前焦点:** 第一轮体验测试（H1）
-- **测试脚本:** `docs/EXPERIENCE_TEST_SCRIPT.md`
-- **最后更新:** 2026-08-30
-
-## Sprint 4 — Experience Polish ✅
-
-| Step | 状态 |
-|---|---|
-| 0–6 | ✅ |
+- **MVP 工程：** Async World 可玩（Sprint 1–4 ✅）
+- **体验结论：** H1 未成立——仍偏答题器
+- **当前 Sprint：** Sprint 5 — Actionable Quest Slice（**设计中**）
+- **概念主轴：** Learning Adventure（行动 → 可见结果）
+- **设计文档：** `docs/SPRINT5_ACTIONABLE_QUEST.md`
+- **最后更新：** 2026-08-30
 
 ## 建议下一步
 
-1. 按 `docs/EXPERIENCE_TEST_SCRIPT.md` 完成场景 A–E  
-2. 回收「最想关掉的一刻」→ 排 P0  
-3. 再开 Sprint 5 规划（不在本 Sprint 内预写实现）
+1. 确认样板关情境 + 交互方案（排序 / 填空）
+2. 实现单关 Vertical Slice
+3. 对比旧选择题，验收是否更想继续
