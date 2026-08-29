@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useGameStore, getQuest } from './application/gameStoreV2';
-import { calculateLevel } from './domain/player/level';
+import { getLevelProgress } from './domain/player/level';
 import { listDueKnowledgeNodeIds } from './domain/review/review';
 import type { Challenge } from './domain/quest/types';
 import type { CalibrationAnswer } from './domain/calibration/types';
@@ -9,6 +9,7 @@ import { asyncWorldCalibration } from './content/calibration/asyncWorld';
 import { selectNextQuest } from './application/useCases/getNextQuest';
 import { evaluateChallenge } from './domain/quest/evaluator';
 import { buildResultCopy } from './presentation/experience/resultCopy';
+import { skillLabel } from './presentation/experience/skillLabels';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import './styles.css';
 
@@ -83,10 +84,16 @@ export default function App() {
   const [calibSelected, setCalibSelected] = useState<string | null>(null);
   const [calibDone, setCalibDone] = useState(false);
 
-  const level = calculateLevel(player.xp);
+  const levelProgress = getLevelProgress(player.xp);
+  const level = levelProgress.level;
   const activeQuest = runtime ? getQuest(runtime.questId) : undefined;
   const now = useMemo(() => new Date().toISOString(), [runtime?.result, adaptive.review]);
   const dueNodes = listDueKnowledgeNodeIds(adaptive.review, now);
+
+  const clearedCount = quests.filter((q) => progress[q.id]?.status === 'cleared').length;
+  const availableCount = quests.filter((q) => progress[q.id]?.status === 'available').length;
+  const questTotal = quests.length;
+  const clearPercent = questTotal === 0 ? 0 : Math.round((clearedCount / questTotal) * 100);
 
   const nextQuest = selectNextQuest({
     quests,
@@ -181,6 +188,62 @@ export default function App() {
               </p>
             </div>
 
+            <div className="progress-panel">
+              <div className="progress-block">
+                <div className="progress-head">
+                  <strong>等级进度</strong>
+                  <span>
+                    Lv.{levelProgress.level}
+                    {levelProgress.nextLevelXp !== null
+                      ? ` · 距 Lv.${levelProgress.level + 1} 还差 ${levelProgress.xpToNext} XP`
+                      : ' · 已达当前最高等级段'}
+                  </span>
+                </div>
+                <div
+                  className="progress-bar"
+                  role="progressbar"
+                  aria-valuenow={levelProgress.progressPercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${levelProgress.progressPercent}%` }}
+                  />
+                </div>
+                <div className="progress-foot">
+                  <span>{player.xp} XP</span>
+                  <span>
+                    {levelProgress.nextLevelXp !== null
+                      ? `下一档 ${levelProgress.nextLevelXp} XP`
+                      : '—'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="progress-block">
+                <div className="progress-head">
+                  <strong>任务完成度</strong>
+                  <span>
+                    {clearedCount} / {questTotal} 通关 · {availableCount} 可挑战
+                  </span>
+                </div>
+                <div
+                  className="progress-bar"
+                  role="progressbar"
+                  aria-valuenow={clearPercent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div className="progress-bar-fill accent" style={{ width: `${clearPercent}%` }} />
+                </div>
+                <div className="progress-foot">
+                  <span>{clearPercent}% 已通关</span>
+                  <span>Async World</span>
+                </div>
+              </div>
+            </div>
+
             {dueNodes.length > 0 && (
               <div className="banner review">
                 <strong>有 {dueNodes.length} 个知识点适合复习了</strong>
@@ -222,8 +285,15 @@ export default function App() {
                 <div className="mastery-grid">
                   {masteryEntries.map((item) => (
                     <div className="mastery-card" key={item.skillDimension}>
-                      <span>{item.skillDimension}</span>
+                      <span>{skillLabel(item.skillDimension)}</span>
                       <strong>{Math.round(item.score)}</strong>
+                      <div className="mini-bar">
+                        <div
+                          className="mini-bar-fill"
+                          style={{ width: `${Math.min(100, Math.round(item.score))}%` }}
+                        />
+                      </div>
+                      <small>{item.evidenceCount} 条证据</small>
                     </div>
                   ))}
                 </div>
@@ -236,7 +306,7 @@ export default function App() {
                 const p = progress[quest.id];
                 const status = p?.status ?? 'locked';
                 return (
-                  <div className="quest-card" key={quest.id}>
+                  <div className={`quest-card status-${status}`} key={quest.id}>
                     <div className="quest-info">
                       <h3>{quest.title}</h3>
                       <p>
@@ -373,20 +443,9 @@ export default function App() {
                 </div>
                 <div className="action-bar">
                   {!runtime.result.passed && (
-                    <>
-                      <button className="submit-button primary" onClick={retryQuest}>
-                        再试一次
-                      </button>
-                      <button
-                        className="hint-button"
-                        onClick={() => {
-                          retryQuest();
-                          // hint after retry clears hintsUsed — useHint on next frame via user
-                        }}
-                      >
-                        重试前可先想一想
-                      </button>
-                    </>
+                    <button className="submit-button primary" onClick={retryQuest}>
+                      再试一次
+                    </button>
                   )}
                   {runtime.result.passed && nextQuest && nextQuest.id !== activeQuest.id && (
                     <button

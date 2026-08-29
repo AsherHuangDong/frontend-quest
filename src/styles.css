@@ -24,6 +24,16 @@ h3 { margin: 0 0 12px; font-size: 16px; color: #e4e4e7; }
 .chapter-card, .challenge-card { border: 1px solid #27272a; border-radius: 24px; background: rgba(17,17,19,.86); padding: clamp(24px, 5vw, 40px); box-shadow: 0 24px 80px rgba(0,0,0,.25); }
 .hub { display: grid; gap: 20px; }
 
+.progress-panel { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.progress-block { padding: 16px 18px; border-radius: 16px; border: 1px solid #3f3f46; background: #18181b; display: grid; gap: 10px; }
+.progress-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.progress-head strong { font-size: 14px; }
+.progress-head span, .progress-foot { font-size: 12px; color: #a1a1aa; }
+.progress-foot { display: flex; justify-content: space-between; }
+.progress-bar { height: 10px; border-radius: 999px; background: #27272a; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #fbbf24, #f59e0b); transition: width 0.35s ease; }
+.progress-bar-fill.accent { background: linear-gradient(90deg, #34d399, #10b981); }
+
 .banner { border-radius: 16px; padding: 16px 18px; border: 1px solid #3f3f46; background: #18181b; display: grid; gap: 8px; }
 .banner.onboarding { border-color: #3f3f46; }
 .banner.review { border-color: #ca8a04; background: rgba(202, 138, 4, 0.08); }
@@ -35,6 +45,9 @@ h3 { margin: 0 0 12px; font-size: 16px; color: #e4e4e7; }
 
 .quest-list { display: grid; gap: 14px; }
 .quest-card { display:flex; justify-content:space-between; align-items:center; padding:22px; border:1px solid #3f3f46; border-radius:16px; background:#18181b; gap: 16px; }
+.quest-card.status-cleared { border-color: #14532d; background: rgba(20, 83, 45, 0.2); }
+.quest-card.status-available { border-color: #3f3f46; }
+.quest-card.status-locked { opacity: 0.75; }
 .quest-info p { margin: 6px 0 0; color: #a1a1aa; font-size: 13px; }
 .quest-card button, .submit-button, .hint-button { border:0; border-radius:10px; padding:12px 18px; color:#09090b; background:#f4f4f5; font-weight:700; }
 .submit-button.primary { background: #fbbf24; }
@@ -60,9 +73,12 @@ h3 { margin: 0 0 12px; font-size: 16px; color: #e4e4e7; }
 
 .mastery-row { display: grid; gap: 12px; }
 .mastery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
-.mastery-card { padding: 14px; border-radius: 12px; border: 1px solid #3f3f46; background: #18181b; }
-.mastery-card span { display: block; color: #a1a1aa; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+.mastery-card { padding: 14px; border-radius: 12px; border: 1px solid #3f3f46; background: #18181b; display: grid; gap: 6px; }
+.mastery-card span { display: block; color: #a1a1aa; font-size: 12px; letter-spacing: 0.04em; }
 .mastery-card strong { font-size: 22px; }
+.mastery-card small { color: #71717a; font-size: 11px; }
+.mini-bar { height: 6px; border-radius: 999px; background: #27272a; overflow: hidden; }
+.mini-bar-fill { height: 100%; background: #60a5fa; border-radius: 999px; }
 
 .question-text { white-space: pre-wrap; line-height: 1.5; font-size: 18px; }
 

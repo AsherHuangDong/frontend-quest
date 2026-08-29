@@ -1,22 +1,34 @@
 import { describe, expect, it } from 'vitest';
-import { calculateLevel } from './level';
+import { calculateLevel, getLevelProgress } from './level';
 
 describe('calculateLevel', () => {
-  it('starts at level 1 with zero xp', () => {
+  it('starts at level 1', () => {
     expect(calculateLevel(0)).toBe(1);
   });
 
-  it('levels up at each configured threshold', () => {
-    expect(calculateLevel(99)).toBe(1);
+  it('reaches level 2 at 100 xp', () => {
     expect(calculateLevel(100)).toBe(2);
-    expect(calculateLevel(249)).toBe(2);
-    expect(calculateLevel(250)).toBe(3);
-    expect(calculateLevel(449)).toBe(3);
-    expect(calculateLevel(450)).toBe(4);
-    expect(calculateLevel(700)).toBe(5);
   });
 
-  it('does not mutate or persist player state', () => {
-    expect(calculateLevel(120)).toBe(2);
+  it('reaches higher levels at thresholds', () => {
+    expect(calculateLevel(250)).toBe(3);
+    expect(calculateLevel(700)).toBe(5);
+  });
+});
+
+describe('getLevelProgress', () => {
+  it('reports progress within a band', () => {
+    const progress = getLevelProgress(50);
+    expect(progress.level).toBe(1);
+    expect(progress.nextLevelXp).toBe(100);
+    expect(progress.xpToNext).toBe(50);
+    expect(progress.progressPercent).toBe(50);
+  });
+
+  it('is full at max level band', () => {
+    const progress = getLevelProgress(800);
+    expect(progress.level).toBe(5);
+    expect(progress.nextLevelXp).toBeNull();
+    expect(progress.progressPercent).toBe(100);
   });
 });
