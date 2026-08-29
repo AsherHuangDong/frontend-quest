@@ -19,6 +19,7 @@ import { LocalStorageGameRepository } from '../infrastructure/persistence/localS
 import {
   createDefaultAdaptiveState,
   normalizeAdaptiveState,
+  touchAdaptiveActivity,
   type AdaptiveSaveState,
   type GameSave,
 } from '../infrastructure/persistence/gameRepository';
@@ -125,7 +126,22 @@ export const useGameStore = create<GameState>((set, get) => ({
     const progress = get().progress[questId];
     // Allow cleared quests for review replay.
     if (!progress || progress.status === 'locked') return;
+    const adaptive = touchAdaptiveActivity(get().adaptive);
+    const current = get();
+    repository.save(
+      toSave({
+        player: current.player,
+        progress: current.progress,
+        skillEvidence: current.skillEvidence,
+        skillMastery: current.skillMastery,
+        currentStreak: current.currentStreak,
+        bestStreak: current.bestStreak,
+        bossProgress: current.bossProgress,
+        adaptive,
+      }),
+    );
     set({
+      adaptive,
       runtime: {
         questId,
         selectedAnswer: null,
@@ -248,10 +264,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       quest.knowledgeNodeIds,
       passed,
     );
-    const nextAdaptive: AdaptiveSaveState = {
+    const nextAdaptive: AdaptiveSaveState = touchAdaptiveActivity({
       ...adaptive,
       review: nextReview,
-    };
+    });
 
     const nextState = {
       player: nextPlayer,
@@ -290,10 +306,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   finishCalibration: (answers, completedAt) => {
     const result = completeCalibration(asyncWorldCalibration, answers, completedAt);
     const current = get();
-    const nextAdaptive: AdaptiveSaveState = {
+    const nextAdaptive: AdaptiveSaveState = touchAdaptiveActivity({
       ...current.adaptive,
       calibration: result,
-    };
+    });
     const nextState = {
       player: current.player,
       progress: current.progress,
