@@ -12,9 +12,11 @@ import { skillLabel } from './presentation/experience/skillLabels';
 import { UI } from './presentation/experience/uiCopy';
 import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
+import { AdventureLab } from './presentation/components/adventure/AdventureLab';
+import { chapter1 } from './content/adventures/chapter1';
 import './styles.css';
 
-type Screen = 'hub' | 'calibrate' | 'quest';
+type Screen = 'hub' | 'calibrate' | 'quest' | 'adventure';
 
 function ChallengeContent({
   challenge,
@@ -142,6 +144,10 @@ export default function App() {
     setScreen('hub');
   }
 
+  function openAdventure() {
+    setScreen('adventure');
+  }
+
   function startCalibration() {
     setCalibIndex(0);
     setCalibAnswers([]);
@@ -216,6 +222,15 @@ export default function App() {
                   </li>
                 ))}
               </ol>
+            </div>
+
+            {/* Sprint 5 temporary entry — Step 3 will replace with proper city hub */}
+            <div className="banner review">
+              <strong>当前异象：{chapter1.title}</strong>
+              <span>时序链中断，台账与库存不再跟随支付契约。</span>
+              <button className="submit-button primary" onClick={openAdventure}>
+                进入金库现场
+              </button>
             </div>
 
             <div className="progress-panel">
@@ -509,6 +524,13 @@ export default function App() {
               </div>
             )}
           </section>
+        )}
+
+        {screen === 'adventure' && (
+          <AdventureLab
+            chapter={chapter1}
+            onBack={() => setScreen('hub')}
+          />
         )}
       </main>
     </>
