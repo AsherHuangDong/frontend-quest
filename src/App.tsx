@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useGameStore, getQuest } from './application/gameStoreV2';
 import { getLevelProgress } from './domain/player/level';
-import { listDueKnowledgeNodeIds } from './domain/review/review';
 import type { Challenge } from './domain/quest/types';
 import type { CalibrationAnswer } from './domain/calibration/types';
 import { quests } from './content/quests';
@@ -11,6 +10,7 @@ import { evaluateChallenge } from './domain/quest/evaluator';
 import { buildResultCopy } from './presentation/experience/resultCopy';
 import { skillLabel } from './presentation/experience/skillLabels';
 import { UI } from './presentation/experience/uiCopy';
+import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import './styles.css';
 
@@ -88,8 +88,12 @@ export default function App() {
   const levelProgress = getLevelProgress(player.xp);
   const level = levelProgress.level;
   const activeQuest = runtime ? getQuest(runtime.questId) : undefined;
-  const now = useMemo(() => new Date().toISOString(), [runtime?.result, adaptive.review]);
-  const dueNodes = listDueKnowledgeNodeIds(adaptive.review, now);
+  const now = useMemo(() => new Date().toISOString(), [runtime?.result, adaptive.review, adaptive.lastActiveAt]);
+  const hubBanner = buildHubStatusBanner({
+    lastActiveAt: adaptive.lastActiveAt,
+    review: adaptive.review,
+    now,
+  });
 
   const clearedCount = quests.filter((q) => progress[q.id]?.status === 'cleared').length;
   const availableCount = quests.filter((q) => progress[q.id]?.status === 'available').length;
@@ -189,7 +193,7 @@ export default function App() {
 
         {screen === 'hub' && (
           <section className="chapter-card hub">
-            <div className={`banner onboarding ${isNewPlayer ? 'emphasize' : ''}`}>
+            <div className={`banner onboarding ${isNewPlayer ? 'emphasize' : ''`}>
               <h2>{UI.onboardingTitle}</h2>
               <ol className="steps">
                 {UI.onboardingSteps.map((step) => (
@@ -260,13 +264,15 @@ export default function App() {
               </div>
             </div>
 
-            {dueNodes.length > 0 && (
-              <div className="banner review">
-                <strong>{UI.reviewBannerTitle(dueNodes.length)}</strong>
-                <span>{UI.reviewBannerBody(dueNodes.join(', '))}</span>
+            {hubBanner && (
+              <div className={`banner ${hubBanner.tone === 'return' ? 'return' : 'review'}`}>
+                <strong>{hubBanner.title}</strong>
+                <span>{hubBanner.body}</span>
                 {nextQuest && (
                   <button className="submit-button" onClick={() => openQuest(nextQuest.id)}>
-                    {UI.ctaReview} · {nextQuest.title}
+                    {hubBanner.tone === 'review' || hubBanner.body.includes('复习')
+                      ? `${UI.ctaReview} · ${nextQuest.title}`
+                      : `${UI.ctaNextQuest} · ${nextQuest.title}`}
                   </button>
                 )}
               </div>
