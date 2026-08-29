@@ -8,6 +8,7 @@ import { quests } from './content/quests';
 import { asyncWorldCalibration } from './content/calibration/asyncWorld';
 import { selectNextQuest } from './application/useCases/getNextQuest';
 import { evaluateChallenge } from './domain/quest/evaluator';
+import { buildResultCopy } from './presentation/experience/resultCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import './styles.css';
 
@@ -99,6 +100,14 @@ export default function App() {
     .map((id) => getQuest(id))
     .filter(Boolean);
 
+  const resultCopy =
+    runtime?.result && activeQuest
+      ? buildResultCopy(activeQuest, runtime.result, {
+          hintsUsed: runtime.hintsUsed,
+          attempts: progress[activeQuest.id]?.attempts ?? 1,
+        })
+      : null;
+
   function openQuest(questId: string) {
     startQuest(questId);
     setScreen('quest');
@@ -168,14 +177,14 @@ export default function App() {
             <div className="banner onboarding">
               <h2>把前端异步知识练成可闯关的能力</h2>
               <p>
-                先做一次快速定级（可选），再按推荐路线挑战。答错可以重试；通关会积累能力证据与复习计划。
+                先做一次快速定级（可选），再按推荐路线挑战。答错不会扣能力——用提示定位盲区，再试一次就好。
               </p>
             </div>
 
             {dueNodes.length > 0 && (
               <div className="banner review">
-                <strong>有 {dueNodes.length} 个知识点到期复习</strong>
-                <span>{dueNodes.join(', ')}</span>
+                <strong>有 {dueNodes.length} 个知识点适合复习了</strong>
+                <span>不是进度倒退，只是记忆需要再加固：{dueNodes.join(', ')}</span>
                 {nextQuest && (
                   <button className="submit-button" onClick={() => openQuest(nextQuest.id)}>
                     开始复习 · {nextQuest.title}
@@ -255,7 +264,7 @@ export default function App() {
             {!calibDone && calibrationQuests[calibIndex] && (
               <>
                 <div className="meta-chip">
-                  定级 {calibIndex + 1} / {calibrationQuests.length}
+                  定级 {calibIndex + 1} / {calibrationQuests.length} · 用来找到合适起点，不是考试
                 </div>
                 <h2>{calibrationQuests[calibIndex]!.title}</h2>
                 <ChallengeContent
@@ -281,11 +290,12 @@ export default function App() {
               <div className="result success">
                 <div className="result-icon">🧭</div>
                 <h2>定级完成：{adaptive.calibration.level}</h2>
-                <p>
+                <p className="result-lead">
                   {adaptive.calibration.recommendedQuestId
-                    ? `推荐从 ${adaptive.calibration.recommendedQuestId} 附近开始挑战。`
-                    : '你已通过全部定级题，可自由选择挑战。'}
+                    ? `我们会优先从「${adaptive.calibration.recommendedQuestId}」附近给你推荐挑战。`
+                    : '定级题都过了，你可以按自己的节奏挑任务。'}
                 </p>
+                <p className="result-soft">定级不会发放 XP，也不会改写关卡解锁——只影响推荐路径。</p>
                 <div className="action-bar">
                   <button
                     className="submit-button primary"
@@ -309,6 +319,7 @@ export default function App() {
           <section className="challenge-card">
             <div className="meta-chip">
               {activeQuest.title} · 难度 {activeQuest.difficulty}
+              {runtime.hintsUsed > 0 ? ` · 已用提示 ${runtime.hintsUsed}` : ''}
             </div>
             {!runtime.result && (
               <>
@@ -319,7 +330,8 @@ export default function App() {
                 />
                 {runtime.hintsUsed > 0 && activeQuest.hints?.[runtime.hintsUsed - 1] && (
                   <div className="banner hint">
-                    提示：{activeQuest.hints[runtime.hintsUsed - 1]}
+                    <strong>提示 {runtime.hintsUsed}</strong>
+                    <span>{activeQuest.hints[runtime.hintsUsed - 1]}</span>
                   </div>
                 )}
                 <div className="action-bar">
@@ -331,7 +343,7 @@ export default function App() {
                     提交答案
                   </button>
                   <button className="hint-button" onClick={useHint}>
-                    提示
+                    需要提示
                   </button>
                   <button
                     className="hint-button"
@@ -345,17 +357,36 @@ export default function App() {
                 </div>
               </>
             )}
-            {runtime.result && (
+            {runtime.result && resultCopy && (
               <div className={`result ${runtime.result.passed ? 'success' : 'failure'}`}>
-                <div className="result-icon">{runtime.result.passed ? '✅' : '❌'}</div>
-                <h2>{runtime.result.passed ? '挑战成功' : '再试一次'}</h2>
-                <p>{runtime.result.feedback}</p>
-                <p>得分 {runtime.result.score}</p>
+                <div className="result-icon">{runtime.result.passed ? '✅' : '💡'}</div>
+                <h2>{resultCopy.title}</h2>
+                <p className="result-lead">{resultCopy.lead}</p>
+                <p className="result-detail">{resultCopy.detail}</p>
+                <p className="result-soft">{resultCopy.encouragement}</p>
+                <div className="result-meta">
+                  <span>得分 {runtime.result.score}</span>
+                  {runtime.result.passed && <span>当前 {player.xp} XP · Lv.{level}</span>}
+                  {!runtime.result.passed && (
+                    <span>尝试次数 {progress[activeQuest.id]?.attempts ?? 1}</span>
+                  )}
+                </div>
                 <div className="action-bar">
                   {!runtime.result.passed && (
-                    <button className="submit-button" onClick={retryQuest}>
-                      重试
-                    </button>
+                    <>
+                      <button className="submit-button primary" onClick={retryQuest}>
+                        再试一次
+                      </button>
+                      <button
+                        className="hint-button"
+                        onClick={() => {
+                          retryQuest();
+                          // hint after retry clears hintsUsed — useHint on next frame via user
+                        }}
+                      >
+                        重试前可先想一想
+                      </button>
+                    </>
                   )}
                   {runtime.result.passed && nextQuest && nextQuest.id !== activeQuest.id && (
                     <button
@@ -363,6 +394,17 @@ export default function App() {
                       onClick={() => openQuest(nextQuest.id)}
                     >
                       下一题 · {nextQuest.title}
+                    </button>
+                  )}
+                  {runtime.result.passed && (!nextQuest || nextQuest.id === activeQuest.id) && (
+                    <button
+                      className="submit-button primary"
+                      onClick={() => {
+                        exitQuest();
+                        setScreen('hub');
+                      }}
+                    >
+                      返回大厅看看进度
                     </button>
                   )}
                   <button

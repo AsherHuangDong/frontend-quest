@@ -14,8 +14,8 @@ const choiceEvaluator: ChallengeEvaluator<ChoiceChallenge> = {
       passed,
       score: passed ? 100 : 0,
       feedback: passed
-        ? '正确！Promise 用于管理异步操作的状态与结果。'
-        : '答案不正确。重新理解 Promise 如何管理异步操作，再挑战一次。',
+        ? '判断正确。你抓住了这道概念题的关键点。'
+        : '还差一点。先看提示或回顾相关概念，再试一次——错误是定位盲区的信号。',
     };
   },
 };
@@ -28,8 +28,8 @@ const outputEvaluator: ChallengeEvaluator<OutputChallenge> = {
       passed,
       score: passed ? 100 : 0,
       feedback: passed
-        ? '输出正确！你正确理解了 JavaScript 的执行顺序。'
-        : '输出顺序不正确。重新梳理同步代码与异步任务的执行顺序。',
+        ? '输出顺序正确。你已经能把同步与异步任务分开想了。'
+        : '顺序还对不上。试着先标出「同步立刻执行」和「微任务稍后执行」，再重试。',
     };
   },
 };
@@ -39,7 +39,7 @@ const unsupportedCodeEvaluator: ChallengeEvaluator = {
     return {
       passed: false,
       score: 0,
-      feedback: '代码题的自动判题引擎将在后续版本接入 Sandbox，目前暂不可提交。',
+      feedback: '代码题的自动判题会在后续版本接入。这不影响你继续挑战其他任务。',
     };
   },
 };
