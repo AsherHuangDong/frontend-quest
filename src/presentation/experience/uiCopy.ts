@@ -5,25 +5,24 @@ export const UI = {
   worldTitle: '异步之城',
   volumeTitle: '第一卷《时序初章》',
 
-  /** Always-visible orientation: what this place is + how to play */
   cityGuideTitle: '这里怎么玩？',
   cityGuideBody:
     '异步之城把 JavaScript 异步知识化成「城市异象」。你不是在答题，而是用操作修复错乱的时序，从而掌握真实规则。',
   cityGuideSteps: [
     {
       n: '1',
-      title: '看当前异象',
-      body: '每个异象对应一块前端知识。第 1 章练的是 Promise 链顺序（then 如何衔接）。',
+      title: '看卷内异象',
+      body: '每章对应一块知识：第 1 章 Promise 链，第 2 章微任务队列。需按顺序解锁。',
     },
     {
       n: '2',
       title: '进入现场、重排步骤',
-      body: '用上下箭头调整「契约誓约」顺序，点「唤起时序」看台账与库存是否恢复。',
+      body: '用上下箭头调整卡片顺序，点「唤起时序」看状态面板是否恢复。',
     },
     {
       n: '3',
       title: '法则铭刻',
-      body: '修复成功后，会明确写出对应的 Promise 规则，并记入你的能力证据。',
+      body: '修复成功后会写出对应的 JS 规则，并记入能力证据。',
     },
   ] as const,
 
