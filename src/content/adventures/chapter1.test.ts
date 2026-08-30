@@ -7,9 +7,8 @@ describe('chapter1 content integrity', () => {
     expect(chapter1.id).toBeTruthy();
     expect(chapter1.title).toBe('金库契约断裂');
     expect(chapter1.knowledgeNodeIds.length).toBeGreaterThan(0);
+    expect(chapter1.learnTopic).toBeTruthy();
     expect(chapter1.intro).toBeTruthy();
-    expect(chapter1.failNarration).toBeTruthy();
-    expect(chapter1.successNarration).toBeTruthy();
     expect(chapter1.statusPanel).toHaveLength(3);
     expect(chapter1.actions).toHaveLength(3);
   });
@@ -26,6 +25,8 @@ describe('chapter1 content integrity', () => {
 });
 
 describe('evaluateChapter1 / evaluateChapterOrder', () => {
+  const keys = chapter1.statusPanel.map((s) => s.key);
+
   it('returns success for correct order', () => {
     const result = evaluateChapter1(chapter1.correctOrder);
     expect(result.success).toBe(true);
@@ -44,7 +45,7 @@ describe('evaluateChapter1 / evaluateChapterOrder', () => {
 
   it('returns fail for any other wrong order', () => {
     const wrong = ['createOrder', 'payment', 'updateInventory'];
-    const result = evaluateChapterOrder(wrong, chapter1.correctOrder);
+    const result = evaluateChapterOrder(wrong, chapter1.correctOrder, keys);
     expect(result.success).toBe(false);
   });
 

@@ -10,10 +10,9 @@ import {
 import { applyQuestOutcomeToReview } from '../../domain/review/review';
 import { advanceStreak } from '../../domain/player/streak';
 
-/** Default skill dimensions trained by a repair adventure (MVP). */
 const ADVENTURE_SKILL_DIMENSIONS = ['understand', 'apply'] as const;
 
-/** XP reward for first clear of chapter 1 (modest, story-first). */
+/** @deprecated use chapter.rewardXp */
 export const CHAPTER1_REWARD_XP = 40;
 
 export interface CompleteAdventureInput {
@@ -60,7 +59,7 @@ function buildChapterProgress(
 
   return {
     questId: chapterId,
-    status: passed ? 'cleared' : previous?.status === 'available' ? 'available' : 'available',
+    status: passed ? 'cleared' : 'available',
     attempts,
     bestScore: Math.max(previous?.bestScore ?? 0, score),
     lastScore: score,
@@ -68,16 +67,12 @@ function buildChapterProgress(
   };
 }
 
-/**
- * Apply a successful (or failed) adventure outcome.
- * Reuses ProgressMap / SkillEvidence / Review without new persistence schema.
- */
 export function completeAdventure(input: CompleteAdventureInput): CompleteAdventureResult {
   const now = input.now ?? new Date().toISOString();
   const { chapter } = input;
   const previous = input.progress[chapter.id];
   const alreadyCleared = previous?.status === 'cleared';
-  const passed = true; // Step 4 is called only on success path from Lab
+  const passed = true;
 
   const chapterProgress = buildChapterProgress(chapter.id, previous, now, passed);
   const nextProgress: ProgressMap = {
@@ -111,7 +106,8 @@ export function completeAdventure(input: CompleteAdventureInput): CompleteAdvent
     ? { current: input.currentStreak, best: input.bestStreak, bonusXp: 0 }
     : advanceStreak(input.currentStreak, input.bestStreak, true);
 
-  const awardedXp = alreadyCleared ? 0 : CHAPTER1_REWARD_XP + streak.bonusXp;
+  const baseXp = chapter.rewardXp ?? CHAPTER1_REWARD_XP;
+  const awardedXp = alreadyCleared ? 0 : baseXp + streak.bonusXp;
 
   const player: Player = {
     ...input.player,

@@ -16,6 +16,8 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
   const [evaluation, setEvaluation] = useState<AdventureEvaluationResult | null>(null);
   const [persisted, setPersisted] = useState(false);
 
+  const statusKeys = chapter.statusPanel.map((s) => s.key);
+
   function move(id: string, direction: -1 | 1) {
     setOrder((prev) => {
       const idx = prev.indexOf(id);
@@ -31,7 +33,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
   function handleRun() {
     setPhase('running');
     window.setTimeout(() => {
-      const result = evaluateChapterOrder(order, chapter.correctOrder);
+      const result = evaluateChapterOrder(order, chapter.correctOrder, statusKeys);
       setEvaluation(result);
       if (result.success) {
         setPhase('success');
@@ -64,7 +66,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
         第 {chapter.chapterNumber} 章 · {chapter.title}
       </div>
       <div className="meta-chip learn-chip">
-        本章知识：Promise 链顺序（.then）
+        本章知识：{chapter.learnTopic}
       </div>
 
       {phase === 'intro' && (
@@ -74,7 +76,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
           </div>
           <div className="action-bar">
             <button className="submit-button primary" onClick={() => setPhase('lab')}>
-              开始重排契约
+              开始重排
             </button>
             <button className="hint-button" onClick={onBack}>
               返回
@@ -85,18 +87,16 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
 
       {(phase === 'lab' || phase === 'running' || phase === 'failed') && (
         <>
-          <h2 className="lab-title">重排 Promise 链（then 顺序）</h2>
+          <h2 className="lab-title">按执行顺序重排</h2>
           <p className="lab-hint">
-            每张卡 = 链上的一步。正确顺序应是：
-            <code className="inline-code">payment → createOrder → updateInventory</code>
-            。用 ↑ ↓ 调整后点「唤起时序」。
+            每张卡 = 一步。用 ↑ ↓ 调整后点「唤起时序」，看状态面板是否全绿。
           </p>
 
           <div className="status-panel">
-            {chapter.statusPanel.map((item) => {
+            {chapter.statusPanel.map((item, index) => {
               const state =
                 evaluation?.status[item.key] ??
-                (item.key === 'payment' ? 'success' : 'fail');
+                (index === 0 ? 'success' : 'fail');
               const label = state === 'success' ? item.successLabel : item.failLabel;
               return (
                 <div
@@ -153,7 +153,7 @@ export function AdventureLab({ chapter, onBack, onSuccess }: AdventureLabProps) 
           <div className="action-bar">
             {phase === 'lab' && (
               <button className="submit-button primary" onClick={handleRun}>
-                唤起时序（运行链）
+                唤起时序（运行）
               </button>
             )}
             {phase === 'running' && (
