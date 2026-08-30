@@ -12,13 +12,10 @@ import { skillLabel } from './presentation/experience/skillLabels';
 import { UI } from './presentation/experience/uiCopy';
 import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
-import { AdventureLab } from './presentation/components/adventure/AdventureLab';
-import { CityGuide } from './presentation/components/adventure/CityGuide';
-import { adventureChapters, isChapterUnlocked } from './content/adventures';
-import type { AdventureChapter } from './domain/adventure/types';
+import { TimelinePrototype } from './prototype/timeline/TimelinePrototype';
 import './styles.css';
 
-type Screen = 'hub' | 'calibrate' | 'quest' | 'adventure';
+type Screen = 'hub' | 'calibrate' | 'quest' | 'prototype';
 
 function ChallengeContent({
   challenge,
@@ -76,10 +73,8 @@ export default function App() {
   const retryQuest = useGameStore((state) => state.retryQuest);
   const useHint = useGameStore((state) => state.useHint);
   const finishCalibration = useGameStore((state) => state.finishCalibration);
-  const completeAdventureChapter = useGameStore((state) => state.completeAdventureChapter);
 
   const [screen, setScreen] = useState<Screen>('hub');
-  const [activeChapter, setActiveChapter] = useState<AdventureChapter | null>(null);
   const [calibIndex, setCalibIndex] = useState(0);
   const [calibAnswers, setCalibAnswers] = useState<CalibrationAnswer[]>([]);
   const [calibSelected, setCalibSelected] = useState<string | null>(null);
@@ -97,8 +92,6 @@ export default function App() {
     review: adaptive.review,
     now,
   });
-
-  const clearedCount = quests.filter((q) => progress[q.id]?.status === 'cleared').length;
 
   const nextQuest = selectNextQuest({
     quests,
@@ -128,13 +121,6 @@ export default function App() {
   function goHub() {
     exitQuest();
     setScreen('hub');
-    setActiveChapter(null);
-  }
-
-  function openAdventure(chapter: AdventureChapter) {
-    if (!isChapterUnlocked(chapter, progress)) return;
-    setActiveChapter(chapter);
-    setScreen('adventure');
   }
 
   function startCalibration() {
@@ -184,70 +170,37 @@ export default function App() {
             <h1>{UI.worldTitle}</h1>
             <p className="volume-line">{UI.volumeTitle}</p>
           </div>
-          <div className="player-stats">
-            <div className="player-card">
-              <span>Lv.{level}</span>
-              <strong>{player.xp} XP</strong>
+          {screen !== 'prototype' && (
+            <div className="player-stats">
+              <div className="player-card">
+                <span>Lv.{level}</span>
+                <strong>{player.xp} XP</strong>
+              </div>
+              <div className="streak-card">
+                <span>🔥 连胜</span>
+                <strong>{currentStreak}</strong>
+                <small>最高 {bestStreak}</small>
+              </div>
             </div>
-            <div className="streak-card">
-              <span>🔥 连胜</span>
-              <strong>{currentStreak}</strong>
-              <small>最高 {bestStreak}</small>
-            </div>
-          </div>
+          )}
         </header>
 
         {screen === 'hub' && (
           <section className="chapter-card hub">
-            <CityGuide />
-
-            <div className="chapter-list">
-              <h3>卷内异象</h3>
-              {adventureChapters.map((chapter) => {
-                const cleared = progress[chapter.id]?.status === 'cleared';
-                const unlocked = isChapterUnlocked(chapter, progress);
-                return (
-                  <div
-                    key={chapter.id}
-                    className={`anomaly-card${cleared ? ' cleared' : ''}${!unlocked ? ' locked' : ''}`}
-                  >
-                    <span className="anomaly-eyebrow">
-                      {!unlocked ? '尚未解锁' : cleared ? '异象已平息' : '可进入'}
-                    </span>
-                    <h2>
-                      第 {chapter.chapterNumber} 章 · {chapter.title}
-                    </h2>
-                    <p className="anomaly-body">
-                      {cleared
-                        ? '法则已铭刻，可再次进入现场复盘。'
-                        : unlocked
-                          ? `本章要练：${chapter.learnTopic}`
-                          : '需先修复前置异象。'}
-                    </p>
-                    <div className="anomaly-meta">
-                      <span className="meta-chip">
-                        {UI.learnTag}：{chapter.learnTopic}
-                      </span>
-                      <span className="meta-chip">
-                        {cleared ? '已修复' : unlocked ? '进行中' : '锁定'}
-                      </span>
-                    </div>
-                    <div className="hub-actions anomaly-actions">
-                      <button
-                        className="submit-button primary"
-                        disabled={!unlocked}
-                        onClick={() => openAdventure(chapter)}
-                      >
-                        {!unlocked
-                          ? '未解锁'
-                          : cleared
-                            ? '再次进入现场'
-                            : '进入现场'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="anomaly-card">
+              <span className="anomaly-eyebrow">原型 · 独立体验</span>
+              <h2>时序初章</h2>
+              <p className="anomaly-body">
+                粮仓、东门、库房——三处现场连续发生。不记分、不入档，只验证「修复现场」是否比刷题更想往下走。
+              </p>
+              <div className="hub-actions anomaly-actions">
+                <button
+                  className="submit-button primary"
+                  onClick={() => setScreen('prototype')}
+                >
+                  进入今日救火
+                </button>
+              </div>
             </div>
 
             {hubBanner && (
@@ -268,13 +221,7 @@ export default function App() {
                       : ' · 已达当前段'}
                   </span>
                 </div>
-                <div
-                  className="progress-bar"
-                  role="progressbar"
-                  aria-valuenow={levelProgress.progressPercent}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                >
+                <div className="progress-bar">
                   <div
                     className="progress-bar-fill"
                     style={{ width: `${levelProgress.progressPercent}%` }}
@@ -288,13 +235,6 @@ export default function App() {
                 <button className="hint-button" onClick={startCalibration}>
                   {UI.ctaCalibrate}
                 </button>
-                <span className="soft-note">定级可选，不影响异象入口</span>
-              </div>
-            )}
-
-            {adaptive.calibration && (
-              <div className="meta-chip">
-                定级：{adaptive.calibration.level}
               </div>
             )}
 
@@ -306,19 +246,16 @@ export default function App() {
                     <div className="mastery-card" key={item.skillDimension}>
                       <span>{skillLabel(item.skillDimension)}</span>
                       <strong>{Math.round(item.score)}</strong>
-                      <div className="mini-bar">
-                        <div
-                          className="mini-bar-fill"
-                          style={{ width: `${Math.min(100, Math.round(item.score))}%` }}
-                        />
-                      </div>
-                      <small>{item.evidenceCount} 条证据</small>
                     </div>
                   ))}
                 </div>
               </div>
             )}
           </section>
+        )}
+
+        {screen === 'prototype' && (
+          <TimelinePrototype onExit={() => setScreen('hub')} />
         )}
 
         {screen === 'calibrate' && (
@@ -352,26 +289,9 @@ export default function App() {
             )}
             {calibDone && adaptive.calibration && (
               <div className="result success">
-                <div className="result-icon">🧭</div>
                 <h2>{UI.calibrateDoneTitle(adaptive.calibration.level)}</h2>
-                <p className="result-lead">
-                  {adaptive.calibration.recommendedQuestId
-                    ? `推荐从「${adaptive.calibration.recommendedQuestId}」附近开始。`
-                    : '定级完成，可以前往当前异象。'}
-                </p>
-                <p className="result-soft">{UI.calibrateNoXpNote}</p>
                 <div className="action-bar">
-                  <button
-                    className="submit-button primary"
-                    onClick={() => {
-                      setScreen('hub');
-                      const first = adventureChapters[0];
-                      if (first) openAdventure(first);
-                    }}
-                  >
-                    {UI.ctaEnterAnomaly}
-                  </button>
-                  <button className="hint-button" onClick={() => setScreen('hub')}>
+                  <button className="submit-button primary" onClick={() => setScreen('hub')}>
                     {UI.ctaBackHub}
                   </button>
                 </div>
@@ -384,7 +304,6 @@ export default function App() {
           <section className="challenge-card">
             <div className="meta-chip">
               {activeQuest.title} · 难度 {activeQuest.difficulty}
-              {runtime.hintsUsed > 0 ? ` · 已用提示 ${runtime.hintsUsed}` : ''}
             </div>
             {!runtime.result && (
               <>
@@ -393,19 +312,13 @@ export default function App() {
                   selectedAnswer={runtime.selectedAnswer}
                   onSelect={selectAnswer}
                 />
-                {runtime.hintsUsed > 0 && activeQuest.hints?.[runtime.hintsUsed - 1] && (
-                  <div className="banner hint">
-                    <strong>提示 {runtime.hintsUsed}</strong>
-                    <span>{activeQuest.hints[runtime.hintsUsed - 1]}</span>
-                  </div>
-                )}
                 <div className="action-bar">
                   <button
                     className="submit-button"
                     disabled={!runtime.selectedAnswer}
                     onClick={submitAnswer}
                   >
-                    提交答案
+                    提交
                   </button>
                   <button className="hint-button" onClick={useHint}>
                     {UI.ctaHint}
@@ -418,35 +331,20 @@ export default function App() {
             )}
             {runtime.result && resultCopy && (
               <div className={`result ${runtime.result.passed ? 'success' : 'failure'}`}>
-                <div className="result-icon">{runtime.result.passed ? '✅' : '💡'}</div>
                 <h2>{resultCopy.title}</h2>
                 <p className="result-lead">{resultCopy.lead}</p>
-                <p className="result-detail">{resultCopy.detail}</p>
-                <p className="result-soft">{resultCopy.encouragement}</p>
-                <div className="result-meta">
-                  <span>得分 {runtime.result.score}</span>
-                  {runtime.result.passed && <span>当前 {player.xp} XP · Lv.{level}</span>}
-                  {!runtime.result.passed && (
-                    <span>尝试次数 {progress[activeQuest.id]?.attempts ?? 1}</span>
-                  )}
-                </div>
                 <div className="action-bar">
                   {!runtime.result.passed && (
                     <button className="submit-button primary" onClick={retryQuest}>
                       {UI.ctaRetry}
                     </button>
                   )}
-                  {runtime.result.passed && nextQuest && nextQuest.id !== activeQuest.id && (
+                  {runtime.result.passed && nextQuest && (
                     <button
                       className="submit-button primary"
                       onClick={() => openQuest(nextQuest.id)}
                     >
-                      {UI.ctaNextQuest} · {nextQuest.title}
-                    </button>
-                  )}
-                  {runtime.result.passed && (!nextQuest || nextQuest.id === activeQuest.id) && (
-                    <button className="submit-button primary" onClick={goHub}>
-                      {UI.allClearHub}
+                      {UI.ctaNextQuest}
                     </button>
                   )}
                   <button className="hint-button" onClick={goHub}>
@@ -456,17 +354,6 @@ export default function App() {
               </div>
             )}
           </section>
-        )}
-
-        {screen === 'adventure' && activeChapter && (
-          <AdventureLab
-            chapter={activeChapter}
-            onBack={() => {
-              setScreen('hub');
-              setActiveChapter(null);
-            }}
-            onSuccess={() => completeAdventureChapter(activeChapter)}
-          />
         )}
       </main>
     </>

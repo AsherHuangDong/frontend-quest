@@ -75,7 +75,7 @@ export function TimelinePrototype({ onExit }: Props) {
         <div className="result success">
           <h2>三处都稳了</h2>
           <pre className="narration-text result-narration">
-            {城卫队长在门口等你：以前总觉是人偷懒，现在看，是「事与事的先后」没理清。`}
+            {城卫队长在门口等你：以前总觉是人偷懒，现在看，是「事与事的先后」没理清。}
           </pre>
           <div className="action-bar">
             <button className="submit-button primary" onClick={onExit}>
