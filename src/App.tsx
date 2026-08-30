@@ -13,6 +13,7 @@ import { UI } from './presentation/experience/uiCopy';
 import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import { AdventureLab } from './presentation/components/adventure/AdventureLab';
+import { CityGuide } from './presentation/components/adventure/CityGuide';
 import { chapter1 } from './content/adventures/chapter1';
 import './styles.css';
 
@@ -117,7 +118,6 @@ export default function App() {
         })
       : null;
 
-  const isNewPlayer = clearedCount === 0 && !adaptive.calibration;
   const chapter1Cleared = progress[chapter1.id]?.status === 'cleared';
 
   function openQuest(questId: string) {
@@ -196,15 +196,20 @@ export default function App() {
 
         {screen === 'hub' && (
           <section className="chapter-card hub">
+            <CityGuide />
+
             <div className={`anomaly-card${chapter1Cleared ? ' cleared' : ''}`}>
               <span className="anomaly-eyebrow">{chapter1Cleared ? '异象已平息' : '当前异象'}</span>
               <h2>{chapter1.title}</h2>
               <p className="anomaly-body">
                 {chapter1Cleared
                   ? '金库重新顺从时间。法则已铭刻，可再次进入现场复盘。'
-                  : '时序链中断，台账与库存不再跟随支付契约。'}
+                  : '支付完成后台账没记、库存却先扣了——这就是 Promise 链顺序错乱时的真实样子。重排三步誓约，唤起时序，看城是否恢复。'}
               </p>
               <div className="anomaly-meta">
+                <span className="meta-chip">
+                  {UI.learnTag}：{UI.learnTopic}
+                </span>
                 <span className="meta-chip">
                   卷进度：第 1 章（{chapter1Cleared ? '已修复' : '进行中'}）
                 </span>
@@ -215,23 +220,6 @@ export default function App() {
                 </button>
               </div>
             </div>
-
-            {isNewPlayer && (
-              <div className="banner onboarding emphasize">
-                <h2>{UI.onboardingTitle}</h2>
-                <ol className="steps">
-                  {UI.onboardingSteps.map((step) => (
-                    <li key={step.n}>
-                      <span className="step-n">{step.n}</span>
-                      <div>
-                        <strong>{step.title}</strong>
-                        <p>{step.body}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
 
             {hubBanner && (
               <div className={`banner ${hubBanner.tone === 'return' ? 'return' : 'review'}`}>
