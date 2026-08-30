@@ -14,7 +14,8 @@ import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import { AdventureLab } from './presentation/components/adventure/AdventureLab';
 import { CityGuide } from './presentation/components/adventure/CityGuide';
-import { chapter1 } from './content/adventures/chapter1';
+import { adventureChapters, isChapterUnlocked } from './content/adventures';
+import type { AdventureChapter } from './domain/adventure/types';
 import './styles.css';
 
 type Screen = 'hub' | 'calibrate' | 'quest' | 'adventure';
@@ -78,6 +79,7 @@ export default function App() {
   const completeAdventureChapter = useGameStore((state) => state.completeAdventureChapter);
 
   const [screen, setScreen] = useState<Screen>('hub');
+  const [activeChapter, setActiveChapter] = useState<AdventureChapter | null>(null);
   const [calibIndex, setCalibIndex] = useState(0);
   const [calibAnswers, setCalibAnswers] = useState<CalibrationAnswer[]>([]);
   const [calibSelected, setCalibSelected] = useState<string | null>(null);
@@ -118,8 +120,6 @@ export default function App() {
         })
       : null;
 
-  const chapter1Cleared = progress[chapter1.id]?.status === 'cleared';
-
   function openQuest(questId: string) {
     startQuest(questId);
     setScreen('quest');
@@ -128,9 +128,12 @@ export default function App() {
   function goHub() {
     exitQuest();
     setScreen('hub');
+    setActiveChapter(null);
   }
 
-  function openAdventure() {
+  function openAdventure(chapter: AdventureChapter) {
+    if (!isChapterUnlocked(chapter, progress)) return;
+    setActiveChapter(chapter);
     setScreen('adventure');
   }
 
@@ -198,27 +201,53 @@ export default function App() {
           <section className="chapter-card hub">
             <CityGuide />
 
-            <div className={`anomaly-card${chapter1Cleared ? ' cleared' : ''}`}>
-              <span className="anomaly-eyebrow">{chapter1Cleared ? '异象已平息' : '当前异象'}</span>
-              <h2>{chapter1.title}</h2>
-              <p className="anomaly-body">
-                {chapter1Cleared
-                  ? '金库重新顺从时间。法则已铭刻，可再次进入现场复盘。'
-                  : '支付完成后台账没记、库存却先扣了——这就是 Promise 链顺序错乱时的真实样子。重排三步誓约，唤起时序，看城是否恢复。'}
-              </p>
-              <div className="anomaly-meta">
-                <span className="meta-chip">
-                  {UI.learnTag}：{UI.learnTopic}
-                </span>
-                <span className="meta-chip">
-                  卷进度：第 1 章（{chapter1Cleared ? '已修复' : '进行中'}）
-                </span>
-              </div>
-              <div className="hub-actions anomaly-actions">
-                <button className="submit-button primary" onClick={openAdventure}>
-                  {chapter1Cleared ? '再次进入现场' : UI.ctaEnterAnomaly}
-                </button>
-              </div>
+            <div className="chapter-list">
+              <h3>卷内异象</h3>
+              {adventureChapters.map((chapter) => {
+                const cleared = progress[chapter.id]?.status === 'cleared';
+                const unlocked = isChapterUnlocked(chapter, progress);
+                return (
+                  <div
+                    key={chapter.id}
+                    className={`anomaly-card${cleared ? ' cleared' : ''}${!unlocked ? ' locked' : ''}`}
+                  >
+                    <span className="anomaly-eyebrow">
+                      {!unlocked ? '尚未解锁' : cleared ? '异象已平息' : '可进入'}
+                    </span>
+                    <h2>
+                      第 {chapter.chapterNumber} 章 · {chapter.title}
+                    </h2>
+                    <p className="anomaly-body">
+                      {cleared
+                        ? '法则已铭刻，可再次进入现场复盘。'
+                        : unlocked
+                          ? `本章要练：${chapter.learnTopic}`
+                          : '需先修复前置异象。'}
+                    </p>
+                    <div className="anomaly-meta">
+                      <span className="meta-chip">
+                        {UI.learnTag}：{chapter.learnTopic}
+                      </span>
+                      <span className="meta-chip">
+                        {cleared ? '已修复' : unlocked ? '进行中' : '锁定'}
+                      </span>
+                    </div>
+                    <div className="hub-actions anomaly-actions">
+                      <button
+                        className="submit-button primary"
+                        disabled={!unlocked}
+                        onClick={() => openAdventure(chapter)}
+                      >
+                        {!unlocked
+                          ? '未解锁'
+                          : cleared
+                            ? '再次进入现场'
+                            : '进入现场'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {hubBanner && (
@@ -336,7 +365,8 @@ export default function App() {
                     className="submit-button primary"
                     onClick={() => {
                       setScreen('hub');
-                      openAdventure();
+                      const first = adventureChapters[0];
+                      if (first) openAdventure(first);
                     }}
                   >
                     {UI.ctaEnterAnomaly}
@@ -428,11 +458,14 @@ export default function App() {
           </section>
         )}
 
-        {screen === 'adventure' && (
+        {screen === 'adventure' && activeChapter && (
           <AdventureLab
-            chapter={chapter1}
-            onBack={() => setScreen('hub')}
-            onSuccess={() => completeAdventureChapter(chapter1)}
+            chapter={activeChapter}
+            onBack={() => {
+              setScreen('hub');
+              setActiveChapter(null);
+            }}
+            onSuccess={() => completeAdventureChapter(activeChapter)}
           />
         )}
       </main>
