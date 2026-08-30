@@ -1,21 +1,35 @@
 # Frontend Quest — Project Progress
 
-## 当前状态
+## Current focus
 
-- **故事调性：** B · 轻奇幻 — 异步之城 · 时间裂缝
-- **当前：** 第一卷多章推进（第 1–2 章可玩）
-- **样板章：**
-  - 第 1 章《金库契约断裂》 — Promise 链
-  - 第 2 章《驿站微尘乱序》 — microtask vs macrotask
-- **最后更新：** 2026-08-30
+**Sprint 5 — Story & Gameplay Core (P0 vertical slice)**
 
-## 已完成
+- Chapter 1: 粮仓事故 (granary incident)
+- Hub: city status, not quest list
+- Loop: observe → act (tap roles) → run order → world reacts
 
-- Sprint 5 P0：Actionable Quest 切片（Hub + Lab + 进度）
-- 体验补丁：怎么玩 / 学什么 说明
-- 第 2 章：微任务知识点 + 解锁链 + Hub 多章列表
+## Engineering
 
-## 下一步（可选）
+- `npm test`: 123 passed (local verification 2026-08-30)
+- `npm run build`: pass
 
-1. 体验第 2 章，收文案/难度
-2. 第 3 章（如 event-loop 或 race-condition）
+## Done this sprint (P0)
+
+- Story domain (`src/domain/story`)
+- Granary content (`src/content/story/granaryIncident.ts`)
+- `GranaryScene` UI
+- Hub city status + CTA 前往粮仓
+- Repair log + next clue (驿站)
+- Docs: `SPRINT5_STORY_GAMEPLAY_CORE.md`
+
+## Not done
+
+- Persist granary clear into GameSave
+- Wire story outcome → skill evidence
+- Chapter 2 station scene
+- Deeper “not click-only” interactions
+
+## Doc vs code
+
+- Old adventure/prototype paths remain in repo but Hub primary path is Story granary.
+- PROJECT_SPEC still describes Sprint 4 as current; STATUS_OVERVIEW updated to Sprint 5.

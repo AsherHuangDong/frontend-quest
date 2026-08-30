@@ -1,8 +1,8 @@
 # Frontend Quest
 
-把前端知识练成可闯关的能力。当前 MVP：**Async World**（本地可玩）。
+Story-driven frontend ability training. Current slice: **时序城 · 粮仓事故**.
 
-## 快速开始
+## Quick start
 
 ```bash
 npm install
@@ -10,28 +10,17 @@ npm run dev
 npm test
 ```
 
-清档重测：
+Clear save:
 
 ```js
 localStorage.removeItem('frontend-quest:save');
 location.reload();
 ```
 
-## 当前进度
+## Current focus
 
-| 阶段 | 状态 |
-|---|---|
-| Sprint 1 Learning Core | ✅ |
-| Sprint 2 Experience Core | ✅ |
-| Sprint 3 Adaptive Core | ✅ |
-| MVP P0 可玩闭环 | ✅ |
-| Sprint 4 Experience Polish | ✅ |
+Sprint 5 — Story & Gameplay Core (P0).
 
-**下一步：** 按 [`docs/EXPERIENCE_TEST_SCRIPT.md`](docs/EXPERIENCE_TEST_SCRIPT.md) 做第一轮体验测试（H1：愿意继续）。
+Play path: open app → 前往粮仓 → observe → arrange who acts when → run the order → repair / next clue.
 
-## 文档
-
-- [`docs/PROJECT_SPEC.md`](docs/PROJECT_SPEC.md)
-- [`docs/PROJECT_PROGRESS.md`](docs/PROJECT_PROGRESS.md)
-- [`docs/SPRINT4_EXPERIENCE_POLISH.md`](docs/SPRINT4_EXPERIENCE_POLISH.md)
-- [`docs/EXPERIENCE_TEST_SCRIPT.md`](docs/EXPERIENCE_TEST_SCRIPT.md)
+See `docs/SPRINT5_STORY_GAMEPLAY_CORE.md` and `docs/PROJECT_PROGRESS.md`.

@@ -1,42 +1,55 @@
 # Sprint 5 — Story & Gameplay Core
 
-> Status: **P0 implementing**  
+> Status: **P0 shipped (pending human H1)**  
 > Date: 2026-08-30
 
 ## Goal
 
-Validate H1 via story + world state + player action + knowledge discovery — not a prettier quiz.
+Validate H1 via story + world state + player action + knowledge discovery.
 
-## Product principles
+## Principles
 
-1. Story is not packaging; the incident comes first.
-2. Knowledge is a world rule the player discovers.
-3. Actions change the world; success is visible repair, not +XP alone.
-4. Failure is the world running the wrong process, with NPC reaction.
+1. Incident first, not quiz packaging.
+2. Knowledge = world rule discovered through outcomes.
+3. Success = visible repair + archive log + next clue.
+4. Failure = world still broken + NPC line.
 
-## P0 scope
+## Player flow (Chapter 1)
 
-| ID | Item | Status |
-|---|---|---|
-| P0-1 | Story scene model | ✅ |
-| P0-2 | Chapter 1 granary data | ✅ |
-| P0-3 | Scene UI (roles on stage) | ✅ |
-| P0-4 | Action → world state | ✅ |
-| P0-5 | Fail → retry | ✅ |
-| P0-6 | Success world restore | ✅ |
-| P0-7 | Repair log | ✅ |
-| P0-8 | Hook to next incident | ✅ |
-| P0-9 | Hub as city status | ✅ |
-| P0-10 | Keep XP/save path optional; no save break | ✅ |
+```
+Hub (city status)
+ → 前往粮仓
+ → briefing / identity
+ → auto observe chaos
+ → tap roles into 今日这一单
+ → 按这一单走一遍
+ → fail → NPC → rearrange
+ → success → restore floor
+ → repair log
+ → station clue
+ → back to hub (granary green, station red)
+```
 
-## Player loop
+## Files
 
-Observe chaos (auto) → assign who works when (tap roles into process line) → run the order → world reacts → retry or repair log + station clue.
+- `src/domain/story/*`
+- `src/content/story/granaryIncident.ts`
+- `src/presentation/components/story/GranaryScene.tsx`
+- Hub in `src/App.tsx`
 
-## Out of scope
+## Tests
 
-IDE, AI, full world map, chapters 2–N full content, Monaco.
+- `src/domain/story/runProcess.test.ts`
+- Full suite + build green as of 2026-08-30
 
-## Technical truth (internal only)
+## Limits
 
-Granary correct process = payment confirmed → ledger → ship (Promise chain dependency).
+- Granary clear is session state (not GameSave yet)
+- Still process-line based (roles are people, but order is explicit)
+- Station chapter not implemented
+
+## Next
+
+1. Human playtest H1 questions from the sprint brief
+2. Persist clear + optional evidence
+3. Station scene if H1 holds
