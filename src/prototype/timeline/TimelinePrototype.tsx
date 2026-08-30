@@ -6,7 +6,7 @@ import type { RunResult, TimelineScene } from './types';
 type Phase = 'entry' | 'floor' | 'running' | 'chaos' | 'settled' | 'done';
 
 const DONE_LINE =
-  '\u57ce\u536b\u961f\u957f\u5728\u95e8\u53e3\u7b49\u4f60\uff1a\u4ee5\u524d\u603b\u89c9\u662f\u4eba\u5077\u61d2\uff0c\u73b0\u5728\u770b\uff0c\u662f\u300c\u4e8b\u4e0e\u4e8b\u7684\u5148\u540e\u300d\u6ca1\u7406\u6e05\u3002';
+  '城卫队长在门口等你：以前总觉是人偷懒，现在看，是「事与事的先后」没理清。';
 
 interface Props {
   onExit: () => void;
@@ -74,13 +74,13 @@ export function TimelinePrototype({ onExit }: Props) {
   if (phase === 'done') {
     return (
       <section className="challenge-card adventure-lab">
-        <div className="meta-chip">\u65f6\u5e8f\u521d\u7ae0 \u00b7 \u539f\u578b</div>
+        <div className="meta-chip">时序初章 · 原型</div>
         <div className="result success">
-          <h2>\u4e09\u5904\u90fd\u7a33\u4e86</h2>
+          <h2>三处都稳了</h2>
           <pre className="narration-text result-narration">{DONE_LINE}</pre>
           <div className="action-bar">
             <button className="submit-button primary" onClick={onExit}>
-              \u79bb\u5f00\u539f\u578b
+              离开原型
             </button>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function TimelinePrototype({ onExit }: Props) {
   return (
     <section className="challenge-card adventure-lab">
       <div className="meta-chip">
-        {scene.place} \u00b7 {scene.title}
+        {scene.place} · {scene.title}
       </div>
 
       {phase === 'entry' && (
@@ -101,10 +101,10 @@ export function TimelinePrototype({ onExit }: Props) {
           </div>
           <div className="action-bar">
             <button className="submit-button primary" onClick={() => setPhase('floor')}>
-              \u770b\u73b0\u573a
+              看现场
             </button>
             <button className="hint-button" onClick={onExit}>
-              \u79bb\u5f00
+              离开
             </button>
           </div>
         </>
@@ -122,7 +122,7 @@ export function TimelinePrototype({ onExit }: Props) {
                   key={s.key}
                   className={`status-item ${state === 'stable' ? 'ok' : 'bad'}`}
                 >
-                  <span className="status-dot">\u25cf</span>
+                  <span className="status-dot">●</span>
                   <span>{text}</span>
                 </div>
               );
@@ -148,7 +148,7 @@ export function TimelinePrototype({ onExit }: Props) {
                     disabled={phase === 'running' || i === 0}
                     onClick={() => move(id, -1)}
                   >
-                    \u2191
+                    ↑
                   </button>
                   <button
                     type="button"
@@ -156,7 +156,7 @@ export function TimelinePrototype({ onExit }: Props) {
                     disabled={phase === 'running' || i === order.length - 1}
                     onClick={() => move(id, 1)}
                   >
-                    \u2193
+                    ↓
                   </button>
                 </div>
               </div>
@@ -172,21 +172,21 @@ export function TimelinePrototype({ onExit }: Props) {
           <div className="action-bar">
             {phase === 'floor' && (
               <button className="submit-button primary" onClick={handleRun}>
-                \u8ba9\u73b0\u573a\u8fd0\u8f6c\u4e00\u6b21
+                让现场运转一次
               </button>
             )}
             {phase === 'running' && (
               <button className="submit-button" disabled>
-                \u8fd0\u8f6c\u4e2d\u2026
+                运转中…
               </button>
             )}
             {phase === 'chaos' && (
               <button className="submit-button primary" onClick={handleRetry}>
-                \u518d\u8bd5
+                再试
               </button>
             )}
             <button className="hint-button" onClick={onExit} disabled={phase === 'running'}>
-              \u79bb\u5f00
+              离开
             </button>
           </div>
         </>
@@ -198,14 +198,14 @@ export function TimelinePrototype({ onExit }: Props) {
           <div className="status-panel success-panel">
             {scene.statuses.map((s) => (
               <div key={s.key} className="status-item ok">
-                <span className="status-dot">\u25cf</span>
+                <span className="status-dot">●</span>
                 <span>{s.stableLabel}</span>
               </div>
             ))}
           </div>
           <div className="action-bar">
             <button className="submit-button primary" onClick={handleAdvance}>
-              {isLast ? '\u7ed3\u675f\u8fd9\u4e00\u5929' : '\u524d\u5f80\u4e0b\u4e00\u5904'}
+              {isLast ? '结束这一天' : '前往下一处'}
             </button>
           </div>
         </div>
