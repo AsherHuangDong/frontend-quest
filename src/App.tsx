@@ -12,10 +12,11 @@ import { skillLabel } from './presentation/experience/skillLabels';
 import { UI } from './presentation/experience/uiCopy';
 import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
-import { TimelinePrototype } from './prototype/timeline/TimelinePrototype';
+import { GranaryScene } from './presentation/components/story/GranaryScene';
+import { granaryIncident } from './content/story/granaryIncident';
 import './styles.css';
 
-type Screen = 'hub' | 'calibrate' | 'quest' | 'prototype';
+type Screen = 'hub' | 'calibrate' | 'quest' | 'story';
 
 function ChallengeContent({
   challenge,
@@ -31,8 +32,6 @@ function ChallengeContent({
   if (challenge.type === 'code') {
     return (
       <div className="result failure">
-        <div className="result-icon">🛠️</div>
-        <span>CODE CHALLENGE</span>
         <h2>代码题即将开放</h2>
       </div>
     );
@@ -75,6 +74,7 @@ export default function App() {
   const finishCalibration = useGameStore((state) => state.finishCalibration);
 
   const [screen, setScreen] = useState<Screen>('hub');
+  const [granaryCleared, setGranaryCleared] = useState(false);
   const [calibIndex, setCalibIndex] = useState(0);
   const [calibAnswers, setCalibAnswers] = useState<CalibrationAnswer[]>([]);
   const [calibSelected, setCalibSelected] = useState<string | null>(null);
@@ -134,17 +134,11 @@ export default function App() {
   function submitCalibrationStep() {
     const quest = calibrationQuests[calibIndex];
     if (!quest || !calibSelected) return;
-
     const evaluation = evaluateChallenge(quest.challenge, calibSelected);
     const nextAnswers: CalibrationAnswer[] = [
       ...calibAnswers,
-      {
-        questId: quest.id,
-        score: evaluation.score,
-        passed: evaluation.passed,
-      },
+      { questId: quest.id, score: evaluation.score, passed: evaluation.passed },
     ];
-
     if (calibIndex + 1 >= calibrationQuests.length) {
       finishCalibration(nextAnswers);
       setCalibAnswers(nextAnswers);
@@ -152,7 +146,6 @@ export default function App() {
       setCalibSelected(null);
       return;
     }
-
     setCalibAnswers(nextAnswers);
     setCalibIndex(calibIndex + 1);
     setCalibSelected(null);
@@ -166,18 +159,18 @@ export default function App() {
       <main className="app-shell">
         <header className="topbar">
           <div>
-            <span className="eyebrow">{UI.productEyebrow}</span>
-            <h1>{UI.worldTitle}</h1>
-            <p className="volume-line">{UI.volumeTitle}</p>
+            <span className="eyebrow">FRONTEND QUEST · 时序城</span>
+            <h1>时序城</h1>
+            <p className="volume-line">第一起事故</p>
           </div>
-          {screen !== 'prototype' && (
+          {screen !== 'story' && (
             <div className="player-stats">
               <div className="player-card">
                 <span>Lv.{level}</span>
                 <strong>{player.xp} XP</strong>
               </div>
               <div className="streak-card">
-                <span>🔥 连胜</span>
+                <span>🔥</span>
                 <strong>{currentStreak}</strong>
                 <small>最高 {bestStreak}</small>
               </div>
@@ -187,21 +180,61 @@ export default function App() {
 
         {screen === 'hub' && (
           <section className="chapter-card hub">
-            <div className="anomaly-card">
-              <span className="anomaly-eyebrow">原型 · 独立体验</span>
-              <h2>时序初章</h2>
-              <p className="anomaly-body">
-                粮仓、东门、库房——三处现场连续发生。不记分、不入档，只验证「修复现场」是否比刷题更想往下走。
-              </p>
-              <div className="hub-actions anomaly-actions">
-                <button
-                  className="submit-button primary"
-                  onClick={() => setScreen('prototype')}
-                >
-                  进入今日救火
-                </button>
+            <p className="identity-line">
+              你是时序城的修复者。城里的设施按某些规律运行——现在，规律出了问题。
+            </p>
+
+            <div className="city-status">
+              <h3>城市状态</h3>
+              <div className="city-row">
+                <span>粮仓</span>
+                <span className={granaryCleared ? 'ok' : 'bad'}>
+                  {granaryCleared ? '🟢 已恢复' : '🔴 异常'}
+                </span>
+              </div>
+              <div className="city-row">
+                <span>驿站</span>
+                <span className={granaryCleared ? 'bad' : 'muted'}>
+                  {granaryCleared ? '🔴 异常光兆' : '🔒 尚未波及'}
+                </span>
+              </div>
+              <div className="city-row">
+                <span>城门</span>
+                <span className="muted">🔒</span>
               </div>
             </div>
+
+            {!granaryCleared ? (
+              <div className="anomaly-card">
+                <span className="anomaly-eyebrow">当前事故</span>
+                <h2>{granaryIncident.title}</h2>
+                <p className="anomaly-body">{granaryIncident.briefing}</p>
+                <div className="hub-actions anomaly-actions">
+                  <button
+                    className="submit-button primary"
+                    onClick={() => setScreen('story')}
+                  >
+                    前往粮仓
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="anomaly-card cleared">
+                <span className="anomaly-eyebrow">粮仓已稳</span>
+                <h2>驿站似乎也不对</h2>
+                <p className="anomaly-body">
+                  远处警报刚刚亮起。下一处尚未开放（原型只做第一起）。
+                </p>
+                <div className="hub-actions anomaly-actions">
+                  <button
+                    className="hint-button"
+                    onClick={() => setScreen('story')}
+                  >
+                    再回粮仓看看
+                  </button>
+                </div>
+              </div>
+            )}
 
             {hubBanner && (
               <div className={`banner ${hubBanner.tone === 'return' ? 'return' : 'review'}`}>
@@ -213,13 +246,8 @@ export default function App() {
             <div className="progress-panel compact">
               <div className="progress-block">
                 <div className="progress-head">
-                  <strong>学徒等级</strong>
-                  <span>
-                    Lv.{levelProgress.level}
-                    {levelProgress.nextLevelXp !== null
-                      ? ` · 距下一档 ${levelProgress.xpToNext} XP`
-                      : ' · 已达当前段'}
-                  </span>
+                  <strong>修复者等级</strong>
+                  <span>Lv.{levelProgress.level}</span>
                 </div>
                 <div className="progress-bar">
                   <div
@@ -240,7 +268,7 @@ export default function App() {
 
             {masteryEntries.length > 0 && (
               <div className="mastery-row">
-                <h3>已铭刻法则</h3>
+                <h3>能力迹象</h3>
                 <div className="mastery-grid">
                   {masteryEntries.map((item) => (
                     <div className="mastery-card" key={item.skillDimension}>
@@ -254,8 +282,11 @@ export default function App() {
           </section>
         )}
 
-        {screen === 'prototype' && (
-          <TimelinePrototype onExit={() => setScreen('hub')} />
+        {screen === 'story' && (
+          <GranaryScene
+            onExit={() => setScreen('hub')}
+            onComplete={() => setGranaryCleared(true)}
+          />
         )}
 
         {screen === 'calibrate' && (
@@ -287,9 +318,8 @@ export default function App() {
                 </div>
               </>
             )}
-            {calibDone && adaptive.calibration && (
+            {calibDone && (
               <div className="result success">
-                <h2>{UI.calibrateDoneTitle(adaptive.calibration.level)}</h2>
                 <div className="action-bar">
                   <button className="submit-button primary" onClick={() => setScreen('hub')}>
                     {UI.ctaBackHub}
@@ -302,9 +332,7 @@ export default function App() {
 
         {screen === 'quest' && runtime && activeQuest && (
           <section className="challenge-card">
-            <div className="meta-chip">
-              {activeQuest.title} · 难度 {activeQuest.difficulty}
-            </div>
+            <div className="meta-chip">{activeQuest.title}</div>
             {!runtime.result && (
               <>
                 <ChallengeContent
