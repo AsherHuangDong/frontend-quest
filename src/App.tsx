@@ -15,6 +15,7 @@ import { FeedbackContainer } from './presentation/components/feedback/FeedbackCo
 import { GranaryScene } from './presentation/components/story/GranaryScene';
 import { granaryIncident } from './content/story/granaryIncident';
 import './styles.css';
+import './styles-story.css';
 
 type Screen = 'hub' | 'calibrate' | 'quest' | 'story';
 
@@ -226,10 +227,7 @@ export default function App() {
                   远处警报刚刚亮起。下一处尚未开放（原型只做第一起）。
                 </p>
                 <div className="hub-actions anomaly-actions">
-                  <button
-                    className="hint-button"
-                    onClick={() => setScreen('story')}
-                  >
+                  <button className="hint-button" onClick={() => setScreen('story')}>
                     再回粮仓看看
                   </button>
                 </div>
