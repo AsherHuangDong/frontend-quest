@@ -6,6 +6,9 @@ export const chapter1: AdventureChapter = {
   chapterNumber: 1,
   title: '金库契约断裂',
   knowledgeNodeIds: ['promise'],
+  learnTopic: 'Promise 链顺序（.then 衔接）',
+  rewardXp: 40,
+  prerequisiteChapterIds: [],
 
   intro: `异步之城 · 金库区
 
@@ -54,28 +57,19 @@ payment.then(createOrder).then(updateInventory)
   ],
 
   actions: [
-    {
-      id: 'payment',
-      label: '确认支付',
-      codeHint: 'payment',
-    },
-    {
-      id: 'createOrder',
-      label: '翻开台账',
-      codeHint: 'createOrder',
-    },
-    {
-      id: 'updateInventory',
-      label: '熄灭库存符文',
-      codeHint: 'updateInventory',
-    },
+    { id: 'payment', label: '确认支付', codeHint: 'payment' },
+    { id: 'createOrder', label: '翻开台账', codeHint: 'createOrder' },
+    { id: 'updateInventory', label: '熄灭库存符文', codeHint: 'updateInventory' },
   ],
 
   correctOrder: ['payment', 'createOrder', 'updateInventory'],
   initialOrder: ['payment', 'updateInventory', 'createOrder'],
 };
 
-/** Convenience export: evaluate this chapter's order */
 export function evaluateChapter1(playerOrder: string[]) {
-  return evaluateChapterOrder(playerOrder, chapter1.correctOrder);
+  return evaluateChapterOrder(
+    playerOrder,
+    chapter1.correctOrder,
+    chapter1.statusPanel.map((s) => s.key),
+  );
 }

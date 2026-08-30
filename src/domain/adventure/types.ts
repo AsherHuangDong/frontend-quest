@@ -1,4 +1,5 @@
-export type AdventureStatusKey = 'payment' | 'ledger' | 'inventory';
+/** Free-form status panel keys (per chapter). */
+export type AdventureStatusKey = string;
 
 export interface AdventureStatusItem {
   key: AdventureStatusKey;
@@ -17,6 +18,8 @@ export interface AdventureChapter {
   chapterNumber: number;
   title: string;
   knowledgeNodeIds: string[];
+  /** Short label for Hub, e.g. "Promise 链顺序" */
+  learnTopic: string;
   intro: string;
   failNarration: string;
   successNarration: string;
@@ -24,9 +27,13 @@ export interface AdventureChapter {
   actions: AdventureAction[];
   correctOrder: string[];
   initialOrder: string[];
+  /** XP on first clear */
+  rewardXp: number;
+  /** Chapter ids that must be cleared before this one unlocks */
+  prerequisiteChapterIds: string[];
 }
 
 export interface AdventureEvaluationResult {
   success: boolean;
-  status: Record<AdventureStatusKey, 'success' | 'fail'>;
+  status: Record<string, 'success' | 'fail'>;
 }
