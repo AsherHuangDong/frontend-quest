@@ -14,10 +14,11 @@ import { buildHubStatusBanner } from './presentation/experience/returnCopy';
 import { FeedbackContainer } from './presentation/components/feedback/FeedbackContainer';
 import { GranaryScene } from './presentation/components/story/GranaryScene';
 import { granaryIncident } from './content/story/granaryIncident';
+import { RelationalLab } from './prototype/relational/RelationalLab';
 import './styles.css';
 import './styles-story.css';
 
-type Screen = 'hub' | 'calibrate' | 'quest' | 'story';
+type Screen = 'hub' | 'calibrate' | 'quest' | 'story' | 'relational';
 
 function ChallengeContent({
   challenge,
@@ -164,7 +165,7 @@ export default function App() {
             <h1>时序城</h1>
             <p className="volume-line">第一起事故</p>
           </div>
-          {screen !== 'story' && (
+          {screen !== 'story' && screen !== 'relational' && (
             <div className="player-stats">
               <div className="player-card">
                 <span>Lv.{level}</span>
@@ -256,6 +257,12 @@ export default function App() {
               </div>
             </div>
 
+            <div className="hub-actions secondary-actions">
+              <button className="hint-button" onClick={() => setScreen('relational')}>
+                Relational 原型（完成/就绪关系）
+              </button>
+            </div>
+
             {!adaptive.calibration && (
               <div className="hub-actions secondary-actions">
                 <button className="hint-button" onClick={startCalibration}>
@@ -285,6 +292,10 @@ export default function App() {
             onExit={() => setScreen('hub')}
             onComplete={() => setGranaryCleared(true)}
           />
+        )}
+
+        {screen === 'relational' && (
+          <RelationalLab onExit={() => setScreen('hub')} />
         )}
 
         {screen === 'calibrate' && (
