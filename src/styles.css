@@ -235,3 +235,54 @@ h3 { margin: 0 0 12px; font-size: 16px; color: #e4e4e7; }
   .quest-card { flex-direction:column; align-items:flex-start; gap:16px; }
   .action-bar { flex-direction:column; }
 }
+
+/* Relational prototype */
+.relational-lab .rel-hint {
+  opacity: 0.9;
+  margin: 0.75rem 0;
+}
+.relational-lab .rel-status-row {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.95rem;
+}
+.relational-lab .rel-signal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.relational-lab .rel-signal {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  cursor: pointer;
+}
+.relational-lab .rel-signal.selected {
+  border-color: rgba(120, 200, 255, 0.7);
+  background: rgba(40, 80, 120, 0.35);
+}
+.relational-lab .rel-ord {
+  display: inline-flex;
+  width: 1.5rem;
+  height: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.85rem;
+}
+.relational-lab .ok {
+  color: #6dcf9a;
+}
+.relational-lab .bad {
+  color: #f0a0a0;
+}
+.relational-lab .muted {
+  opacity: 0.7;
+}
